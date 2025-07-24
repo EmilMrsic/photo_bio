@@ -1,0 +1,22 @@
+diff a/pages/_document.tsx b/pages/_document.tsx	(rejected hunks)
+@@ -1,15 +1,20 @@
+ import { Html, Head, Main, NextScript } from 'next/document'
+ 
+ export default function Document() {
+   return (
+     <Html lang="en" className="bg-white dark:bg-gray-900">
+       <Head>
+         <link rel="stylesheet" href="https://rsms.me/inter/inter.css" />
+       </Head>
+       <body className="min-h-screen font-sans antialiased">
+         <Main />
+         <NextScript />
++        <script
++          data-memberstack-app="YOUR_MEMBERSTACK_APP_ID"
++          src="https://static.memberstack.com/scripts/v1/memberstack.js"
++          type="text/javascript"
++        ></script>
+       </body>
+     </Html>
+   )
+ }

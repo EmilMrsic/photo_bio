@@ -1,3 +1,95 @@
+# Neuralight Pro - Multi-Agent Development Setup
+
+## 🧱 Overview
+
+This repository uses a multi-branch setup to support parallel AI agent development. Each branch represents a different AI agent's workspace, allowing isolated testing while preserving a clean production-grade main branch.
+
+## 📁 Branch Structure
+
+```
+branches:
+├── main        ← Production/stable
+├── claude      ← Claude agent experiments
+├── codex       ← Codex agent experiments
+├── warp        ← Warp agent experiments (current)
+```
+
+## 🚀 Getting Started
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/EmilMrsic/photo_bio.git
+   cd photo_bio
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables:**
+   ```bash
+   cp .env.example .env.local
+   # Edit .env.local with your actual API keys
+   ```
+
+## 🧪 Local Development with Port Isolation
+
+Each agent branch runs on its own port to allow parallel development:
+
+- **Main branch:** `npm run dev:main` (port 3000)
+- **Claude branch:** `npm run dev:claude` (port 4000)
+- **Codex branch:** `npm run dev:codex` (port 5000)
+- **Warp branch:** `npm run dev:warp` (port 6000)
+
+### Switching Between Branches
+
+```bash
+# Switch to Claude branch
+git checkout claude
+npm install  # In case dependencies differ
+npm run dev:claude
+
+# Switch to Codex branch
+git checkout codex
+npm install
+npm run dev:codex
+```
+
+## 🔁 Workflow Rules
+
+1. **Never push directly to main** - All changes must go through a pull request
+2. **Test thoroughly on agent branches** before creating PRs
+3. **Keep main stable** - It represents the production-ready code
+4. **Document significant changes** in your commits and PRs
+
+## 📋 Environment Variables
+
+Required environment variables (see `.env.example`):
+
+- `NEXT_PUBLIC_MEMBERSTACK_PUBLIC_KEY` - Memberstack public key
+- `MEMBERSTACK_SECRET_KEY` - Memberstack secret key
+- `NEXT_PUBLIC_XANO_API_URL` - Xano API endpoint
+- `OPENAI_API_KEY` - OpenAI API key for PDF analysis
+
+## 🛠 Tech Stack
+
+- **Frontend:** Next.js, React, TypeScript, Tailwind CSS
+- **Authentication:** Memberstack
+- **Backend:** Xano
+- **AI Integration:** OpenAI API
+- **File Storage:** Xano file uploads
+
+## 📝 Current Features
+
+- Provider authentication and onboarding
+- Client management system
+- PDF upload and analysis
+- Protocol extraction from brain maps
+- Blog generation with AI
+- Client document sharing
+
+---
 
 # Neuralight Pro - Project Specification
 
