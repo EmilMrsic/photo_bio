@@ -40,7 +40,7 @@ Each agent branch runs on its own port to allow parallel development:
 - **Main branch:** `npm run dev:main` (port 3000)
 - **Claude branch:** `npm run dev:claude` (port 4000)
 - **Codex branch:** `npm run dev:codex` (port 5000)
-- **Warp branch:** `npm run dev:warp` (port 6000)
+- **Warp branch:** `npm run dev:warp` (port 6001)
 
 ### Switching Between Branches
 
