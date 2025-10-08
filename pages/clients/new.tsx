@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Layout from '../../components/Layout';
-import { clientAPI, protocolAPI, providerAPI, Client, Protocol } from '../../lib/xano';
+import { clientAPI, pbmProtocolAPI, providerAPI, Client, Protocol, clearCache } from '../../lib/xano';
 import { useRouter } from 'next/router';
+import { CONDITIONS, CONDITION_DISPLAY_NAMES } from '../../lib/conditions';
 
 export default function NewClientPage() {
   const router = useRouter();
@@ -9,12 +10,13 @@ export default function NewClientPage() {
   const [lastName, setLastName] = useState('');
   const [email, setEmail] = useState('');
   const [condition, setCondition] = useState('');
-  const [intakeType, setIntakeType] = useState('Initial');
   const [notes, setNotes] = useState('');
   const [pdfFile, setPdfFile] = useState<File | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [providerId, setProviderId] = useState<number | null>(null);
+  const [showProcessing, setShowProcessing] = useState(false);
+  const [processingText, setProcessingText] = useState('');
 
   useEffect(() => {
     const fetchProviderInfo = async () => {
@@ -54,10 +56,43 @@ export default function NewClientPage() {
     setLoading(true);
     setError(null);
 
-      if (!providerId || !email) {
-        setError('Provider information not found or email missing. Please log in again.');
+    if (!providerId || !email) {
+      setError('Provider information not found or email missing. Please log in again.');
       setLoading(false);
       return;
+    }
+
+    // Validate that PDF is uploaded
+    if (!pdfFile) {
+      setError('PDF document is required to create a client.');
+      setLoading(false);
+      return;
+    }
+
+    // Validate that condition is selected when PDF is uploaded
+    if (pdfFile && !condition) {
+      setError('Please select a condition to generate a protocol from the brain map.');
+      setLoading(false);
+      return;
+    }
+
+    // Show processing animation only if PDF is uploaded
+    let textInterval: NodeJS.Timeout | null = null;
+    if (pdfFile) {
+      setShowProcessing(true);
+
+      // Alternate between two messages every 3 seconds
+      const messages = [
+        `Analyzing ${firstName}'s BrainMap…`,
+        `Defining the right protocol…`
+      ];
+      let messageIndex = 0;
+      setProcessingText(messages[0]);
+
+      textInterval = setInterval(() => {
+        messageIndex = (messageIndex + 1) % messages.length;
+        setProcessingText(messages[messageIndex]);
+      }, 3000);
     }
 
     try {
@@ -68,7 +103,6 @@ export default function NewClientPage() {
         first_name: firstName,
         last_name: lastName,
         condition: condition || undefined,
-        intake_type: intakeType,
         map_pdf_url: undefined, // Will be updated after PDF upload
         notes: notes || undefined,
       };
@@ -77,28 +111,98 @@ export default function NewClientPage() {
       const createdClient = await clientAPI.createClient(newClient);
       console.log('Client created:', createdClient);
       
-      // Then upload PDF if provided
+      // Then upload PDF and generate protocol if provided
       if (pdfFile && createdClient.id) {
         try {
           console.log('Uploading PDF for client ID:', createdClient.id);
           const uploadResult = await clientAPI.uploadMapsPDF(pdfFile, email, firstName, lastName);
           console.log('PDF upload successful:', uploadResult);
-          
-          // Update client with PDF URL if upload was successful
-          if (uploadResult.url) {
+
+          // Update client with PDF URL/path if upload was successful
+          const pdfPath = uploadResult.url || uploadResult.path;
+          if (pdfPath) {
             await clientAPI.updateClient(createdClient.id.toString(), {
-              map_pdf_url: uploadResult.url
+              map_pdf_url: pdfPath
             });
+          }
+
+          // Now generate protocol from the PDF - condition is required by form validation
+          console.log('About to generate protocol. Condition:', condition, 'Client ID:', createdClient.id);
+
+          try {
+            console.log('Generating protocol for client ID:', createdClient.id);
+            const protocolFormData = new FormData();
+            protocolFormData.append('file', pdfFile);  // API expects 'file' not 'pdf'
+            protocolFormData.append('condition', condition);
+            protocolFormData.append('clientId', createdClient.id.toString());
+
+            console.log('FormData prepared, calling /api/extract-protocol');
+            const response = await fetch('/api/extract-protocol', {
+              method: 'POST',
+              body: protocolFormData,
+            });
+
+            console.log('Protocol API response status:', response.status);
+            if (response.ok) {
+              const result = await response.json();
+              console.log('Protocol generated successfully:', result);
+
+              if (!result.ok) {
+                throw new Error(result.message || 'Failed to extract protocol');
+              }
+
+              const protocol = result.protocol_id;
+              const phases = result.phases || [];
+
+              // Update the client's nfb_protocol in Xano
+              await clientAPI.updateClient(createdClient.id.toString(), {
+                nfb_protocol: protocol
+              });
+
+              // Save protocol phases to pbm_protocols table
+              try {
+                await pbmProtocolAPI.createProtocol(
+                  phases,
+                  createdClient.id,
+                  protocol,
+                  condition,
+                  firstName,
+                  lastName
+                );
+                console.log('PBM protocol saved successfully to Xano');
+              } catch (pbmError) {
+                console.error('Failed to save PBM protocol:', pbmError);
+                // Continue even if PBM protocol save fails
+              }
+            } else {
+              const errorText = await response.text();
+              console.error('Protocol generation failed:', errorText);
+              setError('Protocol generation failed. Please try again from the client profile.');
+            }
+          } catch (protocolErr) {
+            console.error('Error generating protocol:', protocolErr);
+            setError('Error generating protocol. Please try again from the client profile.');
           }
         } catch (uploadErr) {
           console.error('PDF upload failed:', uploadErr);
           // Continue without PDF if upload fails
         }
       }
-      router.push('/clients');
+
+      // Clear the interval
+      if (textInterval) {
+        clearInterval(textInterval);
+      }
+
+      // Clear API cache so fresh data is fetched on the clients page
+      clearCache('clients');
+
+      // Redirect with new client ID to trigger onboarding
+      router.push(`/clients?newClientId=${createdClient.id}&showOnboarding=true`);
     } catch (err) {
       console.error('Error creating client:', err);
       setError('Failed to create client. Please try again.');
+      setShowProcessing(false);
     } finally {
       setLoading(false);
     }
@@ -106,6 +210,27 @@ export default function NewClientPage() {
 
   return (
     <Layout title="New Client">
+      {/* Processing Overlay */}
+      {showProcessing && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900 bg-opacity-20 backdrop-blur-md">
+          <div className="flex flex-col items-center">
+            <div className="w-80 h-80 sm:w-96 sm:h-96">
+              <lottie-player
+                src="/Wave Loading (1).json"
+                background="transparent"
+                speed="1"
+                style={{ width: '100%', height: '100%' }}
+                loop
+                autoplay
+              />
+            </div>
+            <p className="text-2xl sm:text-3xl font-semibold text-gray-900 animate-pulse mt-5">
+              {processingText}
+            </p>
+          </div>
+        </div>
+      )}
+
       <div className="bg-white shadow sm:rounded-lg">
         <div className="px-4 py-5 sm:p-6">
           <h2 className="text-lg leading-6 font-medium text-gray-900">Add a New Client</h2>
@@ -163,46 +288,21 @@ export default function NewClientPage() {
               {/* Condition Field */}
               <div>
                 <label htmlFor="condition" className="block text-sm font-medium text-gray-700">
-                  Condition
+                  Condition *
                 </label>
                 <select
                   id="condition"
                   value={condition}
                   onChange={(e) => setCondition(e.target.value)}
+                  required
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
                 >
                   <option value="">Select a condition</option>
-                  <option value="Memory">Memory</option>
-                  <option value="Focus">Focus</option>
-                  <option value="Anxiety">Anxiety</option>
-                  <option value="Depression">Depression</option>
-                  <option value="Sleep">Sleep</option>
-                  <option value="Head injury">Head injury</option>
-                  <option value="Peak performance">Peak performance</option>
-                  <option value="OCD">OCD</option>
-                  <option value="Chronic pain">Chronic pain</option>
-                  <option value="Spectrum">Spectrum</option>
-                  <option value="Headaches">Headaches</option>
-                  <option value="Stroke recovery">Stroke recovery</option>
-                  <option value="Chronic fatigue">Chronic fatigue</option>
-                  <option value="Addictions">Addictions</option>
-                </select>
-              </div>
-
-              {/* Intake Type Field */}
-              <div>
-                <label htmlFor="intakeType" className="block text-sm font-medium text-gray-700">
-                  Intake Type
-                </label>
-                <select
-                  id="intakeType"
-                  value={intakeType}
-                  onChange={(e) => setIntakeType(e.target.value)}
-                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                >
-                  <option value="Initial">Initial</option>
-                  <option value="Follow-up">Follow-up</option>
-                  <option value="Re-assessment">Re-assessment</option>
+                  {CONDITIONS.map((cond) => (
+                    <option key={cond} value={cond}>
+                      {CONDITION_DISPLAY_NAMES[cond]}
+                    </option>
+                  ))}
                 </select>
               </div>
 
@@ -224,7 +324,7 @@ export default function NewClientPage() {
               {/* PDF Upload */}
               <div className="sm:col-span-2">
                 <label htmlFor="pdf" className="block text-sm font-medium text-gray-700">
-                  Upload PDF Document
+                  Upload PDF Document *
                 </label>
                 <div className="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
                   <div className="space-y-1 text-center">

@@ -79,7 +79,7 @@ export default function VerifyPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     const fullCode = code.join('');
-    
+
     if (fullCode.length !== 6) {
       setError('Please enter a 6-digit code');
       return;
@@ -88,14 +88,24 @@ export default function VerifyPage() {
     setLoading(true);
     setError('');
 
+    // Check if user has practice field BEFORE calling verifyCode
+    const hasPractice = sessionStorage.getItem('has_practice') === 'true';
+    console.log('[Verify Page] Has practice:', hasPractice);
+
     const result = await verifyCode(fullCode);
-    
+
     if (result.error) {
       setError(result.error);
       setLoading(false);
     } else {
-      // Navigation handled by the hook based on role
-      setLoading(false);
+      // If user has practice, force redirect to clients immediately
+      if (hasPractice) {
+        console.log('[Verify Page] Forcing redirect to /clients');
+        window.location.href = '/clients';
+      } else {
+        // Navigation handled by the hook based on role
+        setLoading(false);
+      }
     }
   };
 

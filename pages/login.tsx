@@ -16,17 +16,47 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
-    const result = await login(email);
-    
-    if (result.error) {
-      setError(result.error);
+    try {
+      // STEP 1: Prefetch provider data from Xano (in background)
+      console.log('[Login] Prefetching provider data for:', email);
+      const prefetchPromise = fetch('/api/prefetch-provider', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email }),
+      }).then(res => res.json()).then(data => {
+        console.log('[Login] Prefetch result:', data);
+        if (data.found && data.provider) {
+          // Store provider data for verification page to use
+          sessionStorage.setItem('prefetched_provider', JSON.stringify(data.provider));
+          sessionStorage.setItem('has_practice', data.hasPractice ? 'true' : 'false');
+        }
+        return data;
+      }).catch(err => {
+        console.error('[Login] Prefetch failed:', err);
+        // Don't block login on prefetch failure
+        return null;
+      });
+
+      // STEP 2: Send passwordless email (parallel with prefetch)
+      const result = await login(email);
+
+      if (result.error) {
+        setError(result.error);
+        setLoading(false);
+      } else if (result.passwordlessSent) {
+        // Wait for prefetch to complete before showing success
+        await prefetchPromise;
+
+        setEmailSent(true);
+        setLoading(false);
+        // Store email for verification page
+        sessionStorage.setItem('login_email', email);
+        router.push('/verify');
+      }
+    } catch (error) {
+      console.error('[Login] Error:', error);
+      setError('Failed to send verification email');
       setLoading(false);
-    } else if (result.passwordlessSent) {
-      setEmailSent(true);
-      setLoading(false);
-      // Store email for verification page
-      sessionStorage.setItem('login_email', email);
-      router.push('/verify');
     }
   };
 
@@ -36,12 +66,6 @@ export default function LoginPage() {
         <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
           Sign in to your account
         </h2>
-        <p className="mt-2 text-center text-sm text-gray-600">
-          Or{' '}
-          <Link href="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
-            create a new account
-          </Link>
-        </p>
       </div>
 
       <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">

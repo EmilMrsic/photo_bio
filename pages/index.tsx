@@ -1,8 +1,10 @@
 import Head from 'next/head'
 import Link from 'next/link'
-import { Disclosure, DisclosureButton, DisclosurePanel } from '@headlessui/react'
-import { Bars3Icon, XMarkIcon, CheckCircleIcon, ArrowRightIcon } from '@heroicons/react/24/outline'
-import { ChartBarIcon, CurrencyDollarIcon, ClockIcon, LockClosedIcon, AcademicCapIcon, BeakerIcon } from '@heroicons/react/24/outline'
+import { Disclosure, DisclosureButton, DisclosurePanel, Dialog, DialogPanel, DialogTitle } from '@headlessui/react'
+import { Bars3Icon, XMarkIcon, CheckIcon } from '@heroicons/react/24/outline'
+import { useState, useEffect } from 'react'
+import { useMemberstack } from '../hooks/useMemberstack'
+import { useRouter } from 'next/router'
 
 const navigation = [
   { name: 'Features', href: '#features' },
@@ -11,53 +13,170 @@ const navigation = [
   { name: 'Pricing', href: '#pricing' },
 ]
 
-const features = [
+const products = [
   {
-    name: '🧠 Purpose-Built for Your Practice',
-    description: 'Neuralight Pro was designed for providers already using neurofeedback. Upload a brain map (PDF) or complete a CEC-style questionnaire, and the platform generates a 3-stage light therapy protocol — with time, pulse rate, and intensity included.',
-    icon: ChartBarIcon,
+    id: 'option-one',
+    title: 'Flexible Care Package',
+    productName: 'Neuronic LIGHT 1070',
+    tagline: 'Extend Patient Care & Grow Your Revenue',
+    features: [
+      'Flexible Dual-Use Design: Use it as your primary in-clinic device or deploy it as a take-home tool for continuous patient care.',
+      'Build a New Revenue Stream: Generate immediate income by renting the units to patients or reselling them directly for a profit.',
+      'AI-Powered Personalization: Generate hyper-personalized protocols directly from your client\'s individual BrainMaps.',
+      'Complete Turnkey System: Includes the Neuronic LIGHT helmet and a 12-month provider subscription to get you started.',
+    ],
+    bestFit: 'Providers seeking a flexible system to enhance client outcomes while generating new rental or retail revenue.',
+    price: '$2,095',
+    cta: 'Get Started',
+    checkoutUrl: 'https://buy.stripe.com/5kQfZh9Qi24xdyQ7zIe3e01',
+    imagePlaceholder: '/main-images/side view of helmet.jpg',
   },
   {
-    name: '⏱️ Streamlined Workflow',
-    description: 'No more guesswork. Protocols are tied directly to established neurofeedback recommendations, so you stay in control while saving time.',
-    icon: ClockIcon,
+    id: 'option-two',
+    title: 'Clinical Excellence Package',
+    productName: 'Neuradiant 1070',
+    tagline: 'The Gold Standard for In-Clinic Sessions',
+    features: [
+      'Dedicated Clinical Power: Designed specifically for the demands of a busy office, providing robust, targeted applications.',
+      'Unmatched Targeting Control: Utilize precise quadrant targeting and flexible frequency options for pinpoint-accurate sessions.',
+      'Intelligent & Adaptive Protocols: Our AI builds truly individualized protocols from your client\'s unique brain map data to maximize efficacy.',
+      'Elevate Your Practice: Position your clinic as a leader by offering the most advanced photobiomodulation services available.',
+    ],
+    bestFit: 'Clinics dedicated to providing the most advanced in-office treatments and requiring the highest degree of precision.',
+    price: '$3,455',
+    cta: 'Get Started',
+    checkoutUrl: 'https://buy.stripe.com/cNi4gz8MecJb3Yg7zIe3e02',
+    imagePlaceholder: '/main-images/Neuradiant Helmet.png',
   },
   {
-    name: '📦 Generate Passive Revenue',
-    description: 'Earn $350–$450 per helmet sale. Your annual subscription unlocks wholesale pricing and access to all protocol libraries.',
-    icon: CurrencyDollarIcon,
+    id: 'option-three',
+    title: 'AI Protocol Package',
+    productName: 'Protocol Subscription',
+    tagline: 'Unlock the Power of Your Existing Equipment',
+    features: [
+      'Unlimited AI-Powered Protocols: For 12 months, generate as many precise, QEEG-aligned protocols as you need for all your clients.',
+      'Upgrade Your Hardware\'s IQ: Leverage our powerful AI to create sophisticated protocols that elevate your treatment capabilities.',
+      'Seamless Compatibility: Designed to work flawlessly with existing 1070 nm infrared photobiomodulation systems.',
+      'Always Evolving: Receive continuous access to our latest protocol updates, ensuring your practice stays on the cutting edge.',
+    ],
+    bestFit: 'Practices that want to maximize their existing PBM hardware investment with sophisticated, AI-driven intelligence.',
+    price: '$400',
+    cta: 'Learn More',
+    checkoutUrl: 'https://buy.stripe.com/aFabJ13rU10tgL24nwe3e00',
+    imagePlaceholder: '/main-images/tpbm protocol setting on ios app.webp',
   },
-  {
-    name: '💡 Expand Patient Care',
-    description: 'Offer adjunct care to post-mapping clients. Deliver guided PBM protocols for home use — no neurofeedback machine required.',
-    icon: AcademicCapIcon,
-  },
-  {
-    name: '🔒 Private-Labeled Tools',
-    description: 'Deliver protocols with your branding or a neutral label. Host Loom-style setup videos to hand off setup directly to patients.',
-    icon: LockClosedIcon,
-  },
-];
+]
 
-const platformFeatures = [
-  'Upload PDF maps or complete condition questionnaire (CEC)',
-  'Auto-matched PBM protocols tied to 24+ neurofeedback protocols',
-  'Built-in 3-phase dosing (Initial, Intermediate, Advanced)',
-  'One-click checkout for helmets and accessories',
-  'Central dashboard for protocol tracking and updates',
-];
+export default function Products() {
+  const { member, logout, loading: memberLoading } = useMemberstack()
+  const router = useRouter()
+  const [isContactModalOpen, setIsContactModalOpen] = useState(false)
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [loadingAvatar, setLoadingAvatar] = useState(false)
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    location: '',
+    message: ''
+  })
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
 
-function classNames(...classes: string[]) {
-  return classes.filter(Boolean).join(' ')
-}
+  const handleLogout = async () => {
+    await logout()
+    router.push('/login')
+  }
 
-export default function Home() {
+  // Generate AI avatar for user
+  useEffect(() => {
+    const generateAvatar = async () => {
+      if (!member?.id) {
+        setAvatarUrl(null)
+        return
+      }
+
+      // Check if we already have an avatar cached in localStorage
+      const cachedAvatar = localStorage.getItem(`avatar-${member.id}`)
+      if (cachedAvatar) {
+        setAvatarUrl(cachedAvatar)
+        return
+      }
+
+      // Generate new avatar
+      setLoadingAvatar(true)
+      try {
+        const response = await fetch('/api/generate-profile-avatar', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({ userId: member.id }),
+        })
+
+        if (response.ok) {
+          const data = await response.json()
+          setAvatarUrl(data.imageUrl)
+          // Cache the avatar URL
+          localStorage.setItem(`avatar-${member.id}`, data.imageUrl)
+        }
+      } catch (error) {
+        console.error('Error generating avatar:', error)
+      } finally {
+        setLoadingAvatar(false)
+      }
+    }
+
+    if (!memberLoading) {
+      if (member) {
+        generateAvatar()
+      } else {
+        setAvatarUrl(null)
+      }
+    }
+  }, [member, memberLoading])
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setIsSubmitting(true)
+    setSubmitStatus('idle')
+
+    try {
+      const response = await fetch('/api/contact', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(formData),
+      })
+
+      if (response.ok) {
+        setSubmitStatus('success')
+        setFormData({ name: '', email: '', location: '', message: '' })
+        setTimeout(() => {
+          setIsContactModalOpen(false)
+          setSubmitStatus('idle')
+        }, 2000)
+      } else {
+        setSubmitStatus('error')
+      }
+    } catch (error) {
+      setSubmitStatus('error')
+    } finally {
+      setIsSubmitting(false)
+    }
+  }
+
   return (
     <>
       <Head>
-        <title>Neuralight Pro — Grounded in Neurofeedback. Built for Results.</title>
-        <meta name="description" content="From Brain Map to Protocol in Minutes. Unlock patient-specific photobiomodulation protocols with a powerful new tool for neurofeedback clinicians." />
+        <title>Photobiomodulation Solutions | Neuralight Pro</title>
+        <meta name="description" content="Choose the right photobiomodulation solution for your neurofeedback practice. At-home options, in-clinic precision tools, and AI-driven protocol subscriptions." />
       </Head>
+      <style jsx global>{`
+        html {
+          scroll-behavior: smooth;
+        }
+      `}</style>
       <div className="min-h-screen bg-white">
         {/* Navigation */}
         <Disclosure as="nav" className="bg-white/95 backdrop-blur-sm fixed w-full z-50 shadow-sm">
@@ -65,7 +184,9 @@ export default function Home() {
             <div className="flex h-16 justify-between">
               <div className="flex">
                 <div className="flex shrink-0 items-center">
-                  <span className="text-2xl font-bold text-indigo-600">Neuralight Pro</span>
+                  <Link href="/" className="text-2xl font-bold" style={{ color: '#4F47E6' }}>
+                    TPBM Protocols
+                  </Link>
                 </div>
                 <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
                   {navigation.map((item) => (
@@ -80,18 +201,61 @@ export default function Home() {
                 </div>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:items-center space-x-4">
-                <Link
-                  href="/login"
-                  className="text-sm font-medium text-gray-700 hover:text-gray-900"
-                >
-                  Sign In
-                </Link>
-                <Link
-                  href="/login"
-                  className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-colors"
-                >
-                  Get Started
-                </Link>
+                {!memberLoading && member ? (
+                  <div className="flex items-center space-x-4">
+                    <Link
+                      href="/clients"
+                      className="text-sm font-medium text-gray-700 hover:text-gray-900"
+                    >
+                      View Dashboard
+                    </Link>
+                    <div className="flex items-center space-x-1">
+                      <button
+                        onClick={() => router.push('/profile')}
+                        className="flex items-center text-sm rounded-full focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                      >
+                        {avatarUrl ? (
+                          <img
+                            src={avatarUrl}
+                            alt="Profile"
+                            className="h-8 w-8 rounded-full object-cover"
+                          />
+                        ) : loadingAvatar ? (
+                          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 via-blue-500 to-teal-500 animate-pulse" />
+                        ) : (
+                          <div className="h-8 w-8 rounded-full bg-gradient-to-br from-purple-500 via-blue-500 to-teal-500 flex items-center justify-center text-white text-xs font-semibold">
+                            {member.customFields?.['first-name']?.charAt(0)?.toUpperCase() || member.customFields?.name?.charAt(0)?.toUpperCase() || member.auth?.email?.charAt(0)?.toUpperCase() || 'U'}
+                          </div>
+                        )}
+                        <span className="ml-2 text-gray-700 font-medium">
+                          {member.customFields?.name || member?.email || member?.auth?.email}
+                        </span>
+                      </button>
+                      <button
+                        onClick={handleLogout}
+                        className="text-xs text-gray-500 hover:text-gray-700 ml-2"
+                      >
+                        Sign out
+                      </button>
+                    </div>
+                  </div>
+                ) : !memberLoading ? (
+                  <>
+                    <Link
+                      href="/login"
+                      className="text-sm font-medium text-gray-700 hover:text-gray-900"
+                    >
+                      Sign In
+                    </Link>
+
+                    <a
+                      href="#pricing"
+                      className="rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-colors"
+                    >
+                      Get Started
+                    </a>
+                  </>
+                ) : null}
               </div>
               <div className="-mr-2 flex items-center sm:hidden">
                 <DisclosureButton className="group relative inline-flex items-center justify-center rounded-md p-2 text-gray-400 hover:bg-gray-100 hover:text-gray-500 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-indigo-500">
@@ -124,7 +288,7 @@ export default function Home() {
               </DisclosureButton>
               <DisclosureButton
                 as="a"
-                href="/login"
+                href="#pricing"
                 className="block border-l-4 border-transparent py-2 pl-3 pr-4 text-base font-medium text-white bg-indigo-600 hover:bg-indigo-700"
               >
                 Get Started
@@ -133,140 +297,330 @@ export default function Home() {
           </DisclosurePanel>
         </Disclosure>
 
-        {/* Hero section */}
-        <div className="relative bg-gradient-to-b from-white to-gray-50 pt-16">
-          <div className="mx-auto max-w-7xl px-6 py-24 sm:py-32 lg:px-8">
-            <div className="mx-auto max-w-3xl text-center">
-              <p className="text-base font-semibold text-indigo-600 mb-2">Grounded in Neurofeedback. Built for Results.</p>
-              <h1 className="text-5xl font-bold tracking-tight text-gray-900 sm:text-7xl">
-                From Brain Map to Protocol in Minutes
-              </h1>
-              <p className="mt-6 text-xl leading-8 text-gray-600">
-                Unlock patient-specific photobiomodulation protocols with a powerful new tool for neurofeedback clinicians.
-              </p>
-              <div className="mt-10 flex items-center justify-center gap-x-6">
-                <Link
-                  href="/login"
-                  className="rounded-md bg-indigo-600 px-6 py-3 text-lg font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-all transform hover:scale-105"
-                >
-                  Join Now — Annual Access $399
-                </Link>
-                <a href="#features" className="text-lg font-semibold leading-6 text-gray-900 flex items-center group">
-                  See Sample Protocols <ArrowRightIcon className="ml-2 h-5 w-5 group-hover:translate-x-1 transition-transform" />
-                </a>
+        {/* New Hero Section - Split Layout with Video */}
+        <div className="relative bg-gradient-to-br from-blue-50 via-white to-blue-50 pt-16">
+          <div className="mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-8">
+            <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16 items-center">
+              {/* Left Side - Content */}
+              <div>
+                <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl lg:text-6xl">
+                  QEEG-driven photobiomodulation for better brain health
+                </h1>
+                <p className="mt-6 text-xl leading-8 text-gray-700">
+                  Providers, upload your brain map and get instant TPBM protocols.
+                </p>
+
+                {/* CTA Buttons */}
+                <div className="mt-10 flex flex-col sm:flex-row gap-4">
+                  <a
+                    href="#video"
+                    className="rounded-md bg-indigo-600 px-6 py-3 text-base font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-colors text-center"
+                  >
+                    Watch How It Works
+                  </a>
+                  <a
+                    href="#pricing"
+                    className="rounded-md bg-white px-6 py-3 text-base font-semibold text-indigo-600 shadow-sm ring-1 ring-inset ring-indigo-600 hover:bg-indigo-50 transition-colors text-center"
+                  >
+                    See Provider Options
+                  </a>
+                </div>
+              </div>
+
+              {/* Right Side - Video Embed */}
+              <div className="relative w-full">
+                <div className="relative w-full pb-[56.25%] rounded-2xl shadow-2xl ring-1 ring-gray-900/10 overflow-hidden bg-gray-900">
+                  <div id="video-container" className="absolute top-0 left-0 w-full h-full">
+                    {/* Video will be loaded here when thumbnail is clicked */}
+                  </div>
+
+                  {/* Custom Thumbnail Overlay */}
+                  <div
+                    id="video-thumbnail"
+                    className="absolute top-0 left-0 w-full h-full cursor-pointer group z-10"
+                    onClick={() => {
+                      const thumbnail = document.getElementById('video-thumbnail');
+                      const container = document.getElementById('video-container');
+                      if (thumbnail && container) {
+                        // Hide thumbnail
+                        thumbnail.style.display = 'none';
+                        // Load iframe with autoplay
+                        container.innerHTML = `
+                          <iframe
+                            class="absolute top-0 left-0 w-full h-full border-0"
+                            src="https://customer-f57etvnofv3kxoyh.cloudflarestream.com/4ca36ee41542c9962b04eb69e77e4790/iframe?autoplay=true"
+                            title="Dr. Guy Annunziata explains QEEG-guided TPBM"
+                            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+                            allowfullscreen
+                          ></iframe>
+                        `;
+                      }
+                    }}
+                  >
+                    <img
+                      src="/tpbm intro video thumbnail.png"
+                      alt="Video thumbnail"
+                      className="absolute top-0 left-0 w-full h-full object-cover"
+                      onError={(e) => {
+                        console.error('Thumbnail failed to load');
+                        e.currentTarget.style.backgroundColor = '#1f2937';
+                      }}
+                    />
+                    {/* Play Button Overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center z-20">
+                      <div className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center group-hover:bg-white group-hover:scale-110 transition-all duration-200 shadow-xl">
+                        <svg className="w-10 h-10 text-indigo-600 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z"/>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </div>
-            
-            {/* Hero Image */}
-            <div className="mt-16 flow-root sm:mt-24">
-              <div className="relative rounded-xl bg-gray-900/5 p-2 ring-1 ring-inset ring-gray-900/10 lg:-m-4 lg:rounded-2xl lg:p-4">
-                <img
-                  src="https://images.unsplash.com/photo-1559757148-5c350d0d3c56?w=1200&auto=format&fit=crop&q=80"
-                  alt="Clinician reviewing brain map on tablet with Neuronic helmet"
-                  className="rounded-md shadow-2xl ring-1 ring-gray-900/10"
-                />
+          </div>
+        </div>
+
+        {/* Why QEEG-Guided TPBM Section */}
+        <div id="features" className="bg-white py-16 sm:py-24">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16 items-center">
+              {/* Left Column - Image */}
+              <div className="relative">
+                <div className="aspect-square w-full overflow-hidden rounded-2xl shadow-xl">
+                  <img
+                    src="/main-images/tpbm helmet on desk.png"
+                    alt="TPBM helmet on desk"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+              </div>
+
+              {/* Right Column - Text */}
+              <div>
+                <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                  Stop One-Size-Fits-All. Start Precision Brain Support.
+                </h2>
+                <p className="mt-6 text-lg leading-8 text-gray-700">
+                  Traditional photobiomodulation treats every patient the same. QEEG brain mapping shows where each brain is overactive, underactive, or out of balance. We translate that data into customized TPBM protocols that target exactly where support is needed—whether for focus, emotional balance, or stress resilience.
+                </p>
+
+                {/* Bullets */}
+                <ul className="mt-8 space-y-4">
+                  <li className="flex items-start">
+                    <CheckIcon className="h-6 w-6 text-indigo-600 shrink-0 mt-1" />
+                    <span className="ml-3 text-base text-gray-700">Identifies key brain activity patterns through QEEG</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckIcon className="h-6 w-6 text-indigo-600 shrink-0 mt-1" />
+                    <span className="ml-3 text-base text-gray-700">Builds personalized TPBM stimulation maps</span>
+                  </li>
+                  <li className="flex items-start">
+                    <CheckIcon className="h-6 w-6 text-indigo-600 shrink-0 mt-1" />
+                    <span className="ml-3 text-base text-gray-700">Integrates seamlessly with neurofeedback training</span>
+                  </li>
+                </ul>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Introducing Section */}
-        <div className="bg-white py-24 sm:py-32">
+        {/* Built for BrainCore First Section */}
+        <div className="bg-gradient-to-br from-indigo-50 via-purple-50 to-white py-16 sm:py-24">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Introducing Neuralight Pro</h2>
-              <p className="mt-6 text-lg leading-8 text-gray-600">
-                A precision-guided PBM system for neurofeedback providers. Seamlessly translate your patient's brain map or symptom profile into targeted, three-phase protocols using the Neuronic helmet.
-              </p>
-            </div>
-          </div>
-        </div>
+            <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16 items-center">
+              {/* Left Column - Content Cards */}
+              <div>
+                <div className="inline-block mb-4 rounded-full bg-indigo-100 px-4 py-2">
+                  <p className="text-sm font-semibold text-indigo-900">Exclusive Early Access</p>
+                </div>
+                <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-8">
+                  Built for BrainCore First
+                </h2>
 
-        {/* Features Section */}
-        <div id="features" className="bg-gray-50 py-24 sm:py-32">
-          <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                Why Neurofeedback Providers Choose Neuralight Pro
-              </h2>
-            </div>
-            <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
-              <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-16 lg:max-w-none lg:grid-cols-3">
-                {features.map((feature) => (
-                  <div key={feature.name} className="flex flex-col bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 p-8 hover:shadow-lg transition-shadow">
-                    <dt className="text-lg font-semibold leading-7 text-gray-900">
-                      {feature.name}
-                    </dt>
-                    <dd className="mt-4 flex flex-auto flex-col text-base leading-7 text-gray-600">
-                      <p className="flex-auto">{feature.description}</p>
-                    </dd>
+                {/* Card 1 - Exclusive Launch Partner */}
+                <div className="mb-6 rounded-xl bg-white p-6 shadow-md ring-1 ring-indigo-200 hover:shadow-lg transition-shadow">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-600">
+                        <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M16.5 18.75h-9m9 0a3 3 0 013 3h-15a3 3 0 013-3m9 0v-3.375c0-.621-.503-1.125-1.125-1.125h-.871M7.5 18.75v-3.375c0-.621.504-1.125 1.125-1.125h.872m5.007 0H9.497m5.007 0a7.454 7.454 0 01-.982-3.172M9.497 14.25a7.454 7.454 0 00.981-3.172M5.25 4.236c-.982.143-1.954.317-2.916.52A6.003 6.003 0 007.73 9.728M5.25 4.236V4.5c0 2.108.966 3.99 2.48 5.228M5.25 4.236V2.721C7.456 2.41 9.71 2.25 12 2.25c2.291 0 4.545.16 6.75.47v1.516M7.73 9.728a6.726 6.726 0 002.748 1.35m8.272-6.842V4.5c0 2.108-.966 3.99-2.48 5.228m2.48-5.492a46.32 46.32 0 012.916.52 6.003 6.003 0 01-5.395 4.972m0 0a6.726 6.726 0 01-2.749 1.35m0 0a6.772 6.772 0 01-3.044 0" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Exclusive Launch Partner</h3>
+                      <p className="text-base text-gray-600">
+                        BrainCore providers get first access to our tPBM system—before anyone else. Join the network leading the future of neurofeedback therapy.
+                      </p>
+                    </div>
                   </div>
-                ))}
-              </dl>
-            </div>
-          </div>
-        </div>
+                </div>
 
-        {/* Platform Features */}
-        <div className="bg-white py-24 sm:py-32">
-          <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl lg:text-center">
-              <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Features</h2>
-              <p className="mt-6 text-lg leading-8 text-gray-600">
-                Everything you need to deliver precision photobiomodulation therapy
-              </p>
-            </div>
-            <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-4xl">
-              <dl className="grid max-w-xl grid-cols-1 gap-x-8 gap-y-10 lg:max-w-none lg:grid-cols-2 lg:gap-y-16">
-                {platformFeatures.map((feature) => (
-                  <div key={feature} className="relative pl-9">
-                    <dt className="inline font-semibold text-gray-900">
-                      <CheckCircleIcon className="absolute left-1 top-1 h-5 w-5 text-indigo-600" aria-hidden="true" />
-                    </dt>
-                    <dd className="inline text-gray-600"> {feature}</dd>
+                {/* Card 2 - Seamless Integration */}
+                <div className="mb-6 rounded-xl bg-white p-6 shadow-md ring-1 ring-indigo-200 hover:shadow-lg transition-shadow">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-600">
+                        <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21L3 16.5m0 0L7.5 12M3 16.5h13.5m0-13.5L21 7.5m0 0L16.5 12M21 7.5H7.5" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Seamless Integration</h3>
+                      <p className="text-base text-gray-600">
+                        Designed specifically for BrainCore's workflow—our system integrates directly with your existing QEEG mapping process for effortless protocol generation.
+                      </p>
+                    </div>
                   </div>
-                ))}
-              </dl>
+                </div>
+
+                {/* Card 3 - Proven Results Faster */}
+                <div className="rounded-xl bg-white p-6 shadow-md ring-1 ring-indigo-200 hover:shadow-lg transition-shadow">
+                  <div className="flex items-start">
+                    <div className="flex-shrink-0">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-600">
+                        <svg className="h-6 w-6 text-white" fill="none" viewBox="0 0 24 24" strokeWidth="1.5" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+                        </svg>
+                      </div>
+                    </div>
+                    <div className="ml-4">
+                      <h3 className="text-lg font-semibold text-gray-900 mb-2">Proven Results, Faster</h3>
+                      <p className="text-base text-gray-600">
+                        Layer tPBM with your neurofeedback protocols to accelerate patient outcomes. BrainCore providers are already seeing measurable improvements in fewer sessions.
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right Column - Video Embed */}
+              <div className="relative w-full">
+                <div className="relative w-full pb-[56.25%] rounded-2xl shadow-2xl ring-1 ring-gray-900/10 overflow-hidden bg-gray-900">
+                  <div id="braincore-video-container" className="absolute top-0 left-0 w-full h-full">
+                    {/* Video will be loaded here when thumbnail is clicked */}
+                  </div>
+
+                  {/* Custom Thumbnail Overlay */}
+                  <div
+                    id="braincore-video-thumbnail"
+                    className="absolute top-0 left-0 w-full h-full cursor-pointer group z-10"
+                    onClick={() => {
+                      const thumbnail = document.getElementById('braincore-video-thumbnail');
+                      const container = document.getElementById('braincore-video-container');
+                      if (thumbnail && container) {
+                        thumbnail.style.display = 'none';
+                        container.innerHTML = `
+                          <iframe
+                            class="absolute top-0 left-0 w-full h-full border-0"
+                            src="https://customer-f57etvnofv3kxoyh.cloudflarestream.com/b06223ea6f1d18b5ca1f065ffb62e652/iframe?autoplay=true"
+                            title="Built for BrainCore First"
+                            allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+                            allowfullscreen
+                          ></iframe>
+                        `;
+                      }
+                    }}
+                  >
+                    <img
+                      src="/main-images/tpbm BrainCore .png"
+                      alt="BrainCore video thumbnail"
+                      className="absolute top-0 left-0 w-full h-full object-cover"
+                      onError={(e) => {
+                        console.error('BrainCore thumbnail failed to load');
+                        e.currentTarget.style.backgroundColor = '#1f2937';
+                      }}
+                    />
+                    {/* Play Button Overlay */}
+                    <div className="absolute inset-0 flex items-center justify-center z-20">
+                      <div className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center group-hover:bg-white group-hover:scale-110 transition-all duration-200 shadow-xl">
+                        <svg className="w-10 h-10 text-indigo-600 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                          <path d="M8 5v14l11-7z"/>
+                        </svg>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
             </div>
           </div>
         </div>
 
         {/* How It Works Section */}
-        <div id="how-it-works" className="bg-gray-50 py-24 sm:py-32">
+        <div id="how-it-works" className="bg-gray-50 py-16 sm:py-24">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">How It Works</h2>
-              <p className="mt-6 text-lg leading-8 text-gray-600">
-                Three simple steps to deliver targeted photobiomodulation therapy
-              </p>
+            <div className="mx-auto max-w-2xl text-center mb-16">
+              <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                How QEEG-Guided TPBM Works
+              </h2>
             </div>
-            <div className="mx-auto mt-16 max-w-2xl sm:mt-20 lg:mt-24 lg:max-w-none">
-              <div className="grid grid-cols-1 gap-y-12 lg:grid-cols-3 lg:gap-x-8">
-                <div className="text-center">
-                  <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
-                    <span className="text-3xl font-bold">1</span>
+
+            {/* Three-Step Flow */}
+            <div className="grid grid-cols-1 gap-12 lg:grid-cols-3 lg:gap-8">
+              {/* Step 1 */}
+              <div className="relative">
+                <div className="aspect-[4/3] w-full overflow-hidden rounded-xl bg-gray-100 shadow-md mb-6">
+                  <img
+                    src="/main-images/brainmap-square.webp"
+                    alt="Upload brain map"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="text-center lg:text-left">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-600 text-white text-xl font-bold mb-4">
+                    1
                   </div>
-                  <h3 className="mt-6 text-xl font-semibold text-gray-900">Upload Brain Map</h3>
-                  <p className="mt-2 text-base text-gray-600">
-                    Upload PDF maps or complete condition questionnaire (CEC)
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                    Upload brain map
+                  </h3>
+                  <p className="text-base text-gray-600">
+                    Providers already have the most recent map.
                   </p>
                 </div>
-                <div className="text-center">
-                  <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
-                    <span className="text-3xl font-bold">2</span>
+              </div>
+
+              {/* Step 2 */}
+              <div className="relative">
+                <div className="aspect-[4/3] w-full overflow-hidden rounded-xl bg-gray-100 shadow-md mb-6">
+                  <img
+                    src="/main-images/ai-brain.png"
+                    alt="AI system creating protocol"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="text-center lg:text-left">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-600 text-white text-xl font-bold mb-4">
+                    2
                   </div>
-                  <h3 className="mt-6 text-xl font-semibold text-gray-900">Choose Complaint</h3>
-                  <p className="mt-2 text-base text-gray-600">
-                    Auto-matched PBM protocols tied to 24+ neurofeedback protocols
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                    Let our AI system create the protocol
+                  </h3>
+                  <p className="text-base text-gray-600">
+                    AI-assisted software converts the brain map into precise light-stimulation protocols.
                   </p>
                 </div>
-                <div className="text-center">
-                  <div className="mx-auto flex h-24 w-24 items-center justify-center rounded-full bg-indigo-100 text-indigo-600">
-                    <span className="text-3xl font-bold">3</span>
+              </div>
+
+              {/* Step 3 */}
+              <div className="relative">
+                <div className="aspect-[4/3] w-full overflow-hidden rounded-xl bg-gray-100 shadow-md mb-6">
+                  <img
+                    src="/main-images/tpbm protocol setting on ios app.webp"
+                    alt="Custom settings for client"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="text-center lg:text-left">
+                  <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-indigo-600 text-white text-xl font-bold mb-4">
+                    3
                   </div>
-                  <h3 className="mt-6 text-xl font-semibold text-gray-900">Get Protocol</h3>
-                  <p className="mt-2 text-base text-gray-600">
-                    Built-in 3-phase dosing (Initial, Intermediate, Advanced)
+                  <h3 className="text-xl font-bold text-gray-900 mb-3">
+                    Get custom settings for the client
+                  </h3>
+                  <p className="text-base text-gray-600">
+                    The TPBM helmet delivers gentle near-infrared light to specific regions to restore balance and boost performance.
                   </p>
                 </div>
               </div>
@@ -274,160 +628,363 @@ export default function Home() {
           </div>
         </div>
 
-        {/* Testimonials */}
-        <div className="bg-white py-24 sm:py-32">
-          <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <div className="mx-auto max-w-xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Real-World Impact</h2>
+        {/* The Results Section */}
+        <div id="science" className="relative bg-gradient-to-br from-indigo-50 via-blue-50 to-purple-50 py-16 sm:py-24 overflow-hidden">
+          {/* Subtle texture overlay */}
+          <div className="absolute inset-0 opacity-30" style={{
+            backgroundImage: `url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%239C92AC' fill-opacity='0.1'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+          }}></div>
+
+          <div className="relative mx-auto max-w-7xl px-6 lg:px-8">
+            {/* Header - Centered */}
+            <div className="mx-auto max-w-3xl text-center mb-12">
+              <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                Real Data. Real Change.
+              </h2>
+              <p className="mt-6 text-lg leading-8 text-gray-700">
+                By pairing TPBM with neurofeedback, providers see faster progress in focus, mood regulation, and cognitive recovery. The synergy between light-based stimulation and brain self-training produces measurable improvements that clients can feel.
+              </p>
             </div>
-            <div className="mx-auto mt-16 flow-root max-w-2xl sm:mt-20 lg:mx-0 lg:max-w-none">
-              <div className="-mt-8 sm:-mx-4 sm:columns-2 sm:text-[0] lg:columns-2">
-                <div className="pt-8 sm:inline-block sm:w-full sm:px-4">
-                  <figure className="rounded-2xl bg-gray-50 p-8 text-sm leading-6">
-                    <blockquote className="text-gray-900">
-                      <p>
-                        "We already map every patient. Neuralight gives us a next step that feels clinical, scalable, and supported."
-                      </p>
-                    </blockquote>
-                    <figcaption className="mt-6 flex items-center gap-x-4">
-                      <div>
-                        <div className="font-semibold text-gray-900">Dr. Ken</div>
-                        <div className="text-gray-600">Neurofeedback Provider</div>
-                      </div>
-                    </figcaption>
-                  </figure>
+
+            {/* Two Column Layout: Image Left, Benefits Right */}
+            <div className="mt-12 grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-start">
+              {/* Left Column - Image */}
+              <div className="relative lg:mt-32">
+                <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-2xl ring-1 ring-gray-900/10 lg:sticky lg:top-32">
+                  <img
+                    src="/main-images/redlight frm helmet.webp"
+                    alt="Red light therapy from TPBM helmet"
+                    className="h-full w-full object-cover"
+                  />
                 </div>
-                <div className="pt-8 sm:inline-block sm:w-full sm:px-4">
-                  <figure className="rounded-2xl bg-gray-50 p-8 text-sm leading-6">
-                    <blockquote className="text-gray-900">
-                      <p>
-                        "Patients love the convenience. We love the protocol clarity."
-                      </p>
-                    </blockquote>
-                    <figcaption className="mt-6 flex items-center gap-x-4">
-                      <div>
-                        <div className="font-semibold text-gray-900">Dr. Guy</div>
-                        <div className="text-gray-600">BrainCore Founder</div>
-                      </div>
-                    </figcaption>
-                  </figure>
+              </div>
+
+              {/* Right Column - Benefit Points */}
+              <div className="space-y-6">
+                <div className="flex gap-4 bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md ring-1 ring-gray-200 hover:shadow-lg transition-shadow">
+                  <div className="flex-shrink-0">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-600 text-white text-xl font-bold">
+                      1
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-gray-900 mb-2">
+                      Enhanced Cerebral Blood Flow
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Increases cerebral blood flow to enhance oxygen and nutrient delivery
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md ring-1 ring-gray-200 hover:shadow-lg transition-shadow">
+                  <div className="flex-shrink-0">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-600 text-white text-xl font-bold">
+                      2
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-gray-900 mb-2">
+                      Reduced Oxidative Stress
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Reduces oxidative stress by balancing reactive oxygen species
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md ring-1 ring-gray-200 hover:shadow-lg transition-shadow">
+                  <div className="flex-shrink-0">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-600 text-white text-xl font-bold">
+                      3
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-gray-900 mb-2">
+                      Immune System Support
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Modulates inflammation and supports a healthier immune response
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md ring-1 ring-gray-200 hover:shadow-lg transition-shadow">
+                  <div className="flex-shrink-0">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-600 text-white text-xl font-bold">
+                      4
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-gray-900 mb-2">
+                      Neurogenesis & Plasticity
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Promotes neurogenesis and synaptic plasticity for memory and learning
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex gap-4 bg-white/70 backdrop-blur-sm rounded-xl p-6 shadow-md ring-1 ring-gray-200 hover:shadow-lg transition-shadow">
+                  <div className="flex-shrink-0">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-lg bg-indigo-600 text-white text-xl font-bold">
+                      5
+                    </div>
+                  </div>
+                  <div>
+                    <h3 className="text-base font-semibold text-gray-900 mb-2">
+                      Brain Detoxification
+                    </h3>
+                    <p className="text-sm text-gray-600">
+                      Enhances glymphatic drainage, aiding in brain detoxification and recovery
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Science Section */}
-        <div id="science" className="bg-gray-50 py-24 sm:py-32">
+        {/* Products Grid */}
+        <div id="pricing" className="bg-gray-50 py-16 sm:py-24">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl lg:mx-0">
-              <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">The Science, Simplified</h2>
-              <p className="mt-6 text-lg leading-8 text-gray-600">
-                Photobiomodulation (PBM) has been shown to:
-              </p>
+            <div className="mx-auto max-w-2xl text-center mb-16">
+              <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+                Choose the TPBM Solution That Fits Your Practice
+              </h2>
             </div>
-            <dl className="mx-auto mt-10 grid max-w-2xl grid-cols-1 gap-8 text-base leading-7 text-gray-600 sm:grid-cols-2 lg:mx-0 lg:max-w-none lg:gap-x-16">
-              <div className="relative pl-9">
-                <dt className="inline font-semibold text-gray-900">
-                  <CheckCircleIcon className="absolute left-1 top-1 h-5 w-5 text-indigo-600" aria-hidden="true" />
-                </dt>
-                <dd className="inline">Increase mitochondrial function and cerebral blood flow</dd>
-              </div>
-              <div className="relative pl-9">
-                <dt className="inline font-semibold text-gray-900">
-                  <CheckCircleIcon className="absolute left-1 top-1 h-5 w-5 text-indigo-600" aria-hidden="true" />
-                </dt>
-                <dd className="inline">Improve memory, focus, mood, and sleep in clinical contexts</dd>
-              </div>
-              <div className="relative pl-9">
-                <dt className="inline font-semibold text-gray-900">
-                  <CheckCircleIcon className="absolute left-1 top-1 h-5 w-5 text-indigo-600" aria-hidden="true" />
-                </dt>
-                <dd className="inline">Synergize with neurofeedback training for sustained gains</dd>
-              </div>
-            </dl>
-            <div className="mt-10 rounded-lg bg-indigo-600 p-8 text-white">
-              <h3 className="text-xl font-semibold">What makes Neuralight Pro different?</h3>
-              <p className="mt-2 text-base">
-                Our protocols are neurofeedback-informed — not generic. We map NFB protocol suggestions to targeted PBM stages, ensuring compatibility and clarity.
-              </p>
-            </div>
-          </div>
-        </div>
-
-        {/* Pricing Section */}
-        <div id="pricing" className="bg-white py-24 sm:py-32">
-          <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <div className="mx-auto max-w-4xl text-center">
-              <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">Pricing</h2>
-            </div>
-            <div className="mx-auto mt-16 grid max-w-lg grid-cols-1 items-center gap-y-6 sm:mt-20 sm:gap-y-0 lg:max-w-none lg:grid-cols-2 lg:gap-x-8">
-              {/* Annual License */}
-              <div className="rounded-3xl ring-1 ring-gray-200 p-8 sm:p-10">
-                <h3 className="text-lg font-semibold leading-8 text-indigo-600">Annual License</h3>
-                <p className="mt-4 text-sm leading-6 text-gray-600">
-                  Includes unlimited protocol lookups, wholesale helmet access, and setup guides.
-                </p>
-                <p className="mt-6 flex items-baseline gap-x-1">
-                  <span className="text-4xl font-bold tracking-tight text-gray-900">$399</span>
-                  <span className="text-sm font-semibold leading-6 text-gray-600">/year</span>
-                </p>
-                <Link
-                  href="/login"
-                  className="mt-6 block rounded-md bg-indigo-600 px-3.5 py-2 text-center text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+              {products.map((product) => (
+                <div
+                  key={product.id}
+                  className="flex flex-col bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
                 >
-                  🔐 Join Now — Annual Access
-                </Link>
-              </div>
+                  {/* Product Image */}
+                  <div className="aspect-[4/3] w-full overflow-hidden bg-gray-100 flex-shrink-0">
+                    <img
+                      src={product.imagePlaceholder}
+                      alt={product.productName}
+                      className="h-full w-full object-cover object-center"
+                    />
+                  </div>
 
-              {/* Helmet Pricing */}
-              <div className="rounded-3xl ring-2 ring-indigo-600 p-8 sm:p-10">
-                <h3 className="text-lg font-semibold leading-8 text-indigo-600">Helmet Pricing for Providers</h3>
-                <div className="mt-4 text-sm leading-6 text-gray-600">
-                  <p><strong>MSRP:</strong> $1,795</p>
-                  <p><strong>Provider Rate:</strong> $1,099</p>
-                  <p className="text-green-600 font-semibold"><strong>Your Profit Per Unit:</strong> ~$400</p>
+                  {/* Product Content - Vertical Flex Layout */}
+                  <div className="flex flex-col p-6 flex-grow">
+                    {/* Title and Product Name - Fixed Height */}
+                    <div>
+                      <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wide">
+                        {product.title}
+                      </p>
+                      <h3 className="mt-2 text-2xl font-bold text-gray-900">
+                        {product.productName}
+                      </h3>
+                      <div className="mt-3 inline-block rounded-full bg-indigo-100 px-4 py-2">
+                        <p className="text-sm font-bold text-indigo-900">
+                          {product.tagline}
+                        </p>
+                      </div>
+                    </div>
+
+                    {/* Features List - Stretchy Middle */}
+                    <ul className="mt-4 space-y-2 flex-grow">
+                      {product.features.map((feature, index) => (
+                        <li key={index} className="flex items-start">
+                          <CheckIcon className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" aria-hidden="true" />
+                          <span className="ml-3 text-sm text-gray-700">{feature}</span>
+                        </li>
+                      ))}
+                    </ul>
+
+                    {/* Best Fit - Fixed Slot */}
+                    <div className="mt-4 rounded-lg bg-gray-50 p-4">
+                      <p className="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-2">
+                        Best Fit
+                      </p>
+                      <p className="text-sm text-gray-600">
+                        {product.bestFit}
+                      </p>
+                    </div>
+
+                    {/* Price and CTA - Bottom */}
+                    <div className="mt-4">
+                      <p className="flex items-baseline justify-center gap-x-2">
+                        <span className="text-4xl font-bold tracking-tight text-gray-900">
+                          {product.price}
+                        </span>
+                      </p>
+                      <a
+                        href={product.checkoutUrl}
+                        className="mt-4 block w-full rounded-md bg-indigo-600 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-colors"
+                      >
+                        Get Started
+                      </a>
+                    </div>
+                  </div>
                 </div>
-                <p className="mt-6 text-sm text-gray-600">
-                  Optional packages: 1 | 3 | 5 | 10 helmet packs w/ bonus materials
-                </p>
-                <Link
-                  href="/login"
-                  className="mt-6 block rounded-md bg-indigo-600 px-3.5 py-2 text-center text-sm font-semibold leading-6 text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
-                >
-                  📦 Buy Helmet — $1,099 Wholesale
-                </Link>
-              </div>
+              ))}
             </div>
-            <div className="mt-10 text-center">
-              <a href="#" className="text-sm font-semibold leading-6 text-indigo-600">
-                🎓 See Sample Protocols →
-              </a>
+          </div>
+        </div>
+
+        {/* FAQ/Support Section */}
+        <div className="bg-white py-16 sm:py-24">
+          <div className="mx-auto max-w-3xl px-6 lg:px-8 text-center">
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+              Not sure which option is right for you?
+            </h2>
+            <p className="mt-6 text-lg leading-8 text-gray-600">
+              Schedule a consultation with our team to discuss your practice's specific needs.
+            </p>
+            <div className="mt-10">
+              <button
+                onClick={() => setIsContactModalOpen(true)}
+                className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-indigo-600 shadow-sm ring-1 ring-inset ring-indigo-600 hover:bg-indigo-50 transition-colors"
+              >
+                Contact Us
+              </button>
             </div>
           </div>
         </div>
 
         {/* CTA Section */}
         <div className="bg-indigo-700">
-          <div className="px-6 py-24 sm:px-6 sm:py-32 lg:px-8">
+          <div className="px-6 py-16 sm:px-6 sm:py-24 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                Ready to Extend Your Neurofeedback Offering?
+                Ready to expand your neurofeedback practice?
               </h2>
               <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-indigo-200">
-                Want to simplify your setup even further? Use our Loom video templates to create custom walk-throughs for your patients. No tech support calls. Just results.
+                Join providers across the country who are using QEEG-guided photobiomodulation to deliver better outcomes.
               </p>
               <div className="mt-10 flex items-center justify-center gap-x-6">
-                <Link
-                  href="/login"
+                <a
+                  href="#pricing"
                   className="rounded-md bg-white px-3.5 py-2.5 text-sm font-semibold text-indigo-600 shadow-sm hover:bg-indigo-50 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
                 >
-                  Get started today
-                </Link>
+                  Get Started Today
+                </a>
               </div>
             </div>
           </div>
         </div>
+
+        {/* Contact Form Modal */}
+        <Dialog open={isContactModalOpen} onClose={() => setIsContactModalOpen(false)} className="relative z-50">
+          <div className="fixed inset-0 bg-black/30 backdrop-blur-sm" aria-hidden="true" />
+
+          <div className="fixed inset-0 flex items-center justify-center p-4">
+            <DialogPanel className="mx-auto max-w-lg w-full bg-white rounded-2xl shadow-2xl">
+              <div className="p-8">
+                <DialogTitle className="text-2xl font-bold text-gray-900 mb-2">
+                  Get in Touch
+                </DialogTitle>
+                <p className="text-gray-600 mb-6">
+                  Tell us about your practice and we'll get back to you shortly.
+                </p>
+
+                <form onSubmit={handleSubmit} className="space-y-6">
+                  {/* Name Field */}
+                  <div>
+                    <label htmlFor="name" className="block text-sm font-semibold text-gray-900 mb-2">
+                      Name *
+                    </label>
+                    <input
+                      type="text"
+                      id="name"
+                      required
+                      value={formData.name}
+                      onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-4 py-2 border"
+                      placeholder="Dr. John Smith"
+                    />
+                  </div>
+
+                  {/* Email Field */}
+                  <div>
+                    <label htmlFor="email" className="block text-sm font-semibold text-gray-900 mb-2">
+                      Email *
+                    </label>
+                    <input
+                      type="email"
+                      id="email"
+                      required
+                      value={formData.email}
+                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-4 py-2 border"
+                      placeholder="john@example.com"
+                    />
+                  </div>
+
+                  {/* Location Field */}
+                  <div>
+                    <label htmlFor="location" className="block text-sm font-semibold text-gray-900 mb-2">
+                      Location *
+                    </label>
+                    <input
+                      type="text"
+                      id="location"
+                      required
+                      value={formData.location}
+                      onChange={(e) => setFormData({ ...formData, location: e.target.value })}
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-4 py-2 border"
+                      placeholder="City, State"
+                    />
+                  </div>
+
+                  {/* Message Field */}
+                  <div>
+                    <label htmlFor="message" className="block text-sm font-semibold text-gray-900 mb-2">
+                      Message *
+                    </label>
+                    <textarea
+                      id="message"
+                      required
+                      rows={5}
+                      value={formData.message}
+                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
+                      className="block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-4 py-2 border resize-none"
+                      placeholder="Tell us about your practice and what you're looking for..."
+                    />
+                  </div>
+
+                  {/* Submit Status Messages */}
+                  {submitStatus === 'success' && (
+                    <div className="rounded-md bg-green-50 p-4">
+                      <p className="text-sm font-medium text-green-800">
+                        Message sent successfully! We'll be in touch soon.
+                      </p>
+                    </div>
+                  )}
+                  {submitStatus === 'error' && (
+                    <div className="rounded-md bg-red-50 p-4">
+                      <p className="text-sm font-medium text-red-800">
+                        Something went wrong. Please try again or email us directly at emil@thankyuu.com
+                      </p>
+                    </div>
+                  )}
+
+                  {/* Action Buttons */}
+                  <div className="flex gap-3 pt-4">
+                    <button
+                      type="button"
+                      onClick={() => setIsContactModalOpen(false)}
+                      className="flex-1 rounded-md bg-white px-4 py-2.5 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50 transition-colors"
+                    >
+                      Cancel
+                    </button>
+                    <button
+                      type="submit"
+                      disabled={isSubmitting}
+                      className="flex-1 rounded-md bg-indigo-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    >
+                      {isSubmitting ? 'Sending...' : 'Send Message'}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </DialogPanel>
+          </div>
+        </Dialog>
       </div>
     </>
   )

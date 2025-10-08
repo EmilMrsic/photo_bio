@@ -1,5 +1,9 @@
 // Xano API Configuration
-const XANO_API_BASE = process.env.NEXT_PUBLIC_XANO_API_URL || '';
+// Support both env names: NEXT_PUBLIC_XANO_API_URL and legacy NEXT_PUBLIC_XANO_API
+const XANO_API_BASE =
+  process.env.NEXT_PUBLIC_XANO_API_URL ||
+  (process.env as any).NEXT_PUBLIC_XANO_API ||
+  '';
 
 // Mock data for development - empty array to use real Xano data
 const MOCK_CLIENTS: Client[] = [];
@@ -105,6 +109,20 @@ export interface SharedLink {
   access_count: number;
 }
 
+export interface PBMProtocol {
+  id?: number;
+  created_at?: number;
+  hz: number;  // frequency from phases
+  stage_1_time: number;  // Initial phase duration_min
+  stage_1_intensity: number;  // Initial phase intensity_percent
+  stage_2_time: number;  // Intermediate phase duration_min
+  stage_2_intensity: number;  // Intermediate phase intensity_percent
+  stage_3_time: number;  // Advanced phase duration_min
+  stage_3_intensity: number;  // Advanced phase intensity_percent
+  label: string;  // Protocol label/name
+  clients_id: number;  // Client ID this protocol belongs to
+}
+
 // Helper function to get auth token from Memberstack
 const getAuthToken = async () => {
   if (typeof window !== 'undefined' && (window as any).memberstack) {
@@ -130,6 +148,23 @@ const getHeaders = async () => {
 // Simple in-memory cache for API responses
 const apiCache = new Map<string, { data: any; timestamp: number }>();
 const CACHE_DURATION = 30000; // 30 seconds cache
+
+// Function to clear specific cache entries
+export const clearCache = (pattern?: string) => {
+  if (pattern) {
+    // Clear entries matching pattern
+    const keysToDelete: string[] = [];
+    apiCache.forEach((_, key) => {
+      if (key.includes(pattern)) {
+        keysToDelete.push(key);
+      }
+    });
+    keysToDelete.forEach(key => apiCache.delete(key));
+  } else {
+    // Clear all cache
+    apiCache.clear();
+  }
+};
 
 // Fetch with timeout
 const fetchWithTimeout = async (url: string, options: RequestInit, timeout = 10000) => {
@@ -382,8 +417,11 @@ export const clientAPI = {
       
       const result = await response.json();
       console.log('PDF upload result:', result);
-      // Return the file URL from the response
-      return { url: result.file_url || result.url || '' };
+      // Return the file path/URL from the response - Xano returns 'path' field
+      return {
+        url: result.file_url || result.url || result.path || '',
+        path: result.path || ''
+      };
     } catch (error) {
       console.error('Error uploading MAPS PDF:', error);
       throw error;
@@ -640,7 +678,7 @@ export const protocolAPI = {
 
 // Provider API functions
 export const providerAPI = {
-  // Create or update a provider
+  // Update an existing provider (by email). We do NOT create new providers here.
   async upsertProvider(provider: Omit<Provider, 'id' | 'created_at' | 'updated_at'>) {
     if (useMockData) {
       // Return mock provider for development
@@ -666,47 +704,56 @@ export const providerAPI = {
       if (searchResponse.ok) {
         const providers = await searchResponse.json();
         if (Array.isArray(providers) && providers.length > 0) {
-          existingProvider = providers[0];
-          console.log('Found existing provider:', existingProvider);
+          const match = providers.find((p: any) => (p.email || '').toLowerCase() === provider.email.toLowerCase());
+          if (match) {
+            existingProvider = match;
+            console.log('Found existing provider (direct query, filtered):', existingProvider);
+          }
         }
       }
       
-      if (existingProvider) {
-        // Update existing provider
-        console.log('Updating existing provider with ID:', existingProvider.id);
-        const updateResponse = await fetch(`${XANO_API_BASE}/providers/${existingProvider.id}`, {
-          method: 'PATCH',
-          headers,
-          body: JSON.stringify({
-            ...provider,
-            memberstack_id: provider.memberstack_id, // Make sure to set the memberstack_id
-          }),
-        });
-        
-        if (!updateResponse.ok) {
-          const errorText = await updateResponse.text();
-          console.error('Xano API error response:', errorText);
-          throw new Error(`Failed to update provider: ${updateResponse.status} - ${errorText}`);
+      // Fallback: fetch all providers and filter by email (in case filtering on Xano isn't configured)
+      if (!existingProvider) {
+        try {
+          const allResp = await fetch(`${XANO_API_BASE}/providers`, { method: 'GET', headers });
+          if (allResp.ok) {
+            const allProviders = await allResp.json();
+            if (Array.isArray(allProviders)) {
+              existingProvider = allProviders.find((p: any) => (p.email || '').toLowerCase() === provider.email.toLowerCase()) || null;
+              if (existingProvider) {
+                console.log('Found existing provider (fallback list filter):', existingProvider);
+              }
+            }
+          }
+        } catch (fallbackErr) {
+          console.warn('Provider fallback list fetch failed:', fallbackErr);
         }
-        
-        return await updateResponse.json();
-      } else {
-        // Create new provider
-        console.log('Creating new provider');
-        const createResponse = await fetch(`${XANO_API_BASE}/providers`, {
-          method: 'POST',
-          headers,
-          body: JSON.stringify(provider),
-        });
-        
-        if (!createResponse.ok) {
-          const errorText = await createResponse.text();
-          console.error('Xano API error response:', errorText);
-          throw new Error(`Failed to create provider: ${createResponse.status} - ${errorText}`);
-        }
-        
-        return await createResponse.json();
       }
+      
+      if (!existingProvider) {
+        const errMsg = `Provider not found in Xano for email ${provider.email}. Creation is disabled by policy.`;
+        console.error(errMsg);
+        throw new Error(errMsg);
+      }
+
+      // Update existing provider
+      console.log('Updating existing provider with ID:', existingProvider.id);
+      const updateResponse = await fetch(`${XANO_API_BASE}/providers/${existingProvider.id}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({
+          ...provider,
+          memberstack_id: provider.memberstack_id, // ensure memberstack_id stored
+        }),
+      });
+      
+      if (!updateResponse.ok) {
+        const errorText = await updateResponse.text();
+        console.error('Xano API error response:', errorText);
+        throw new Error(`Failed to update provider: ${updateResponse.status} - ${errorText}`);
+      }
+      
+      return await updateResponse.json();
     } catch (error) {
       console.error('Error creating/updating provider:', error);
       throw error;
@@ -748,27 +795,35 @@ export const providerAPI = {
       const response = await fetchWithTimeout(url, {
         method: 'GET',
         headers,
-      }, 5000); // 5 second timeout for provider lookup
+      }, 15000); // 15 second timeout for provider lookup
       
       console.log('Response status:', response.status);
       
-      if (!response.ok) {
-        const errorText = await response.text();
-        console.error('Error response:', errorText);
-        if (response.status === 404) {
-          return null;
+      if (response.ok) {
+        const providers = await response.json();
+        if (Array.isArray(providers) && providers.length > 0) {
+          const match = providers.find((p: any) => (p.email || '').toLowerCase() === email.toLowerCase()) || null;
+          if (match) {
+            console.log('Found provider (direct query, filtered):', match);
+            apiCache.set(cacheKey, { data: match, timestamp: Date.now() });
+            return match;
+          }
         }
-        throw new Error(`Failed to fetch provider by email: ${response.status}`);
       }
       
-      const providers = await response.json();
-      console.log('Providers response:', providers);
-      
-      if (Array.isArray(providers) && providers.length > 0) {
-        console.log('Found provider:', providers[0]);
-        // Cache the provider
-        apiCache.set(cacheKey, { data: providers[0], timestamp: Date.now() });
-        return providers[0];
+      // Fallback: fetch all and filter locally by email
+      console.log('Direct query returned empty; falling back to list filter');
+      const allResp = await fetchWithTimeout(`${XANO_API_BASE}/providers`, { method: 'GET', headers }, 15000);
+      if (allResp.ok) {
+        const allProviders = await allResp.json();
+        if (Array.isArray(allProviders)) {
+          const match = allProviders.find((p: any) => (p.email || '').toLowerCase() === email.toLowerCase()) || null;
+          if (match) {
+            apiCache.set(cacheKey, { data: match, timestamp: Date.now() });
+            console.log('Found provider (fallback list filter):', match);
+            return match;
+          }
+        }
       }
       
       console.log('No provider found for email:', email);
@@ -843,6 +898,203 @@ export const providerAPI = {
       return await response.json();
     } catch (error) {
       console.error('Error updating provider:', error);
+      throw error;
+    }
+  },
+};
+
+// PBM Protocol API
+export const pbmProtocolAPI = {
+  // Create a new PBM protocol from phases data
+  async createProtocol(
+    phases: any[],
+    clientId: number,
+    protocolId: number,
+    condition: string,
+    clientFirstName: string,
+    clientLastName: string
+  ): Promise<PBMProtocol> {
+    try {
+      // Extract phase data - assuming phases are ordered: Initial, Intermediate, Advanced
+      const initial = phases[0] || {};
+      const intermediate = phases[1] || {};
+      const advanced = phases[2] || {};
+
+      // Generate label: CONDITION-DATE-INITIALS (e.g., ANXIETY-100725-JD)
+      const now = new Date();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const year = String(now.getFullYear()).slice(-2);
+      const dateStr = `${month}${day}${year}`;
+
+      const initials = `${clientFirstName.charAt(0)}${clientLastName.charAt(0)}`.toUpperCase();
+      const label = `${condition.toUpperCase()}-${dateStr}-${initials}`;
+
+      const protocolData: Omit<PBMProtocol, 'id' | 'created_at'> = {
+        hz: initial.frequency_hz || 0,
+        stage_1_time: initial.duration_min || 0,
+        stage_1_intensity: initial.intensity_percent || 0,
+        stage_2_time: intermediate.duration_min || 0,
+        stage_2_intensity: intermediate.intensity_percent || 0,
+        stage_3_time: advanced.duration_min || 0,
+        stage_3_intensity: advanced.intensity_percent || 0,
+        label,
+        clients_id: clientId,
+      };
+
+      const headers = await getHeaders();
+      const response = await fetch(`${XANO_API_BASE}/pbm_protocols`, {
+        method: 'POST',
+        headers,
+        body: JSON.stringify(protocolData),
+      });
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`Failed to create PBM protocol: ${errorText}`);
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error creating PBM protocol:', error);
+      throw error;
+    }
+  },
+
+  // Get protocol by client ID
+  async getProtocolByClientId(clientId: number): Promise<PBMProtocol | null> {
+    try {
+      const headers = await getHeaders();
+      const response = await fetch(`${XANO_API_BASE}/pbm_protocols?clients_id=${clientId}`, {
+        method: 'GET',
+        headers,
+      });
+
+      if (!response.ok) {
+        if (response.status === 404) return null;
+        throw new Error('Failed to fetch PBM protocol');
+      }
+
+      const protocols = await response.json();
+      return protocols.length > 0 ? protocols[0] : null;
+    } catch (error) {
+      console.error('Error fetching PBM protocol:', error);
+      return null;
+    }
+  },
+
+  // Get ALL protocols by client ID (for history)
+  async getAllProtocolsByClientId(clientId: number): Promise<PBMProtocol[]> {
+    try {
+      const headers = await getHeaders();
+      // Fetch all protocols since API doesn't support filtering by query parameter
+      const url = `${XANO_API_BASE}/pbm_protocols`;
+      console.log('Fetching all PBM protocols from:', url, 'for client ID:', clientId);
+
+      const response = await fetch(url, {
+        method: 'GET',
+        headers,
+      });
+
+      console.log('PBM protocols response status:', response.status);
+
+      if (!response.ok) {
+        if (response.status === 404) return [];
+        const errorText = await response.text();
+        console.error('PBM protocols fetch error:', errorText);
+        throw new Error('Failed to fetch PBM protocols');
+      }
+
+      const data = await response.json();
+      console.log('All PBM protocols data:', data);
+
+      // Filter by client ID on the client side
+      const filteredProtocols = Array.isArray(data)
+        ? data.filter((protocol: PBMProtocol) => protocol.clients_id === clientId)
+        : [];
+
+      console.log(`Filtered protocols for client ID ${clientId}:`, filteredProtocols);
+
+      // Sort by created_at descending (newest first)
+      return filteredProtocols.sort((a: PBMProtocol, b: PBMProtocol) =>
+        new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
+      );
+    } catch (error) {
+      console.error('Error fetching PBM protocols:', error);
+      return [];
+    }
+  },
+
+  // Update an existing protocol
+  async updateProtocol(
+    id: number,
+    phases: any[],
+    protocolId: number,
+    condition: string,
+    clientFirstName: string,
+    clientLastName: string
+  ): Promise<PBMProtocol> {
+    try {
+      const initial = phases[0] || {};
+      const intermediate = phases[1] || {};
+      const advanced = phases[2] || {};
+
+      // Generate label: CONDITION-DATE-INITIALS
+      const now = new Date();
+      const month = String(now.getMonth() + 1).padStart(2, '0');
+      const day = String(now.getDate()).padStart(2, '0');
+      const year = String(now.getFullYear()).slice(-2);
+      const dateStr = `${month}${day}${year}`;
+
+      const initials = `${clientFirstName.charAt(0)}${clientLastName.charAt(0)}`.toUpperCase();
+      const label = `${condition.toUpperCase()}-${dateStr}-${initials}`;
+
+      const updates = {
+        hz: initial.frequency_hz || 0,
+        stage_1_time: initial.duration_min || 0,
+        stage_1_intensity: initial.intensity_percent || 0,
+        stage_2_time: intermediate.duration_min || 0,
+        stage_2_intensity: intermediate.intensity_percent || 0,
+        stage_3_time: advanced.duration_min || 0,
+        stage_3_intensity: advanced.intensity_percent || 0,
+        label,
+      };
+
+      const headers = await getHeaders();
+      const response = await fetch(`${XANO_API_BASE}/pbm_protocols/${id}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify(updates),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update PBM protocol');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating PBM protocol:', error);
+      throw error;
+    }
+  },
+
+  // Delete a protocol
+  async deleteProtocol(protocolId: number): Promise<boolean> {
+    try {
+      const headers = await getHeaders();
+      const response = await fetch(`${XANO_API_BASE}/pbm_protocols/${protocolId}`, {
+        method: 'DELETE',
+        headers,
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to delete PBM protocol');
+      }
+
+      console.log(`Successfully deleted protocol ${protocolId}`);
+      return true;
+    } catch (error) {
+      console.error('Error deleting PBM protocol:', error);
       throw error;
     }
   },

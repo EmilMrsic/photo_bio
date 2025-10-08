@@ -15,20 +15,51 @@ export default function OnboardingPage() {
   });
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [isRedirecting, setIsRedirecting] = useState(false);
 
-  // Redirect if user already has a role
+  // Redirect if user already has a role OR has practice data
   useEffect(() => {
+    // IMMEDIATE CHECK: If user has practice data from prefetch, skip onboarding
+    if (typeof window !== 'undefined') {
+      const hasPractice = sessionStorage.getItem('has_practice') === 'true';
+      if (hasPractice) {
+        console.log('[Onboarding] User has practice - redirecting to clients immediately');
+        setIsRedirecting(true);
+        router.replace('/clients'); // Use replace to avoid back button issues
+        return;
+      }
+    }
+
+    // Secondary check: if user already has a role in Memberstack
     if (!memberLoading && member) {
       console.log('Onboarding - Member role:', role);
       console.log('Onboarding - Full member:', member);
-      
+
       if (role === 'provider') {
-        router.push('/clients');
+        setIsRedirecting(true);
+        router.replace('/clients');
       } else if (role === 'admin') {
-        router.push('/admin/dashboard');
+        setIsRedirecting(true);
+        router.replace('/admin/dashboard');
       }
     }
   }, [memberLoading, member, role, router]);
+
+  // Show loading state while redirecting
+  if (isRedirecting || memberLoading) {
+    return (
+      <Layout title="Complete Your Profile">
+        <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
+          <div className="sm:mx-auto sm:w-full sm:max-w-md">
+            <div className="text-center">
+              <div className="inline-block h-12 w-12 animate-spin rounded-full border-4 border-solid border-indigo-600 border-r-transparent"></div>
+              <p className="mt-4 text-sm text-gray-600">Loading your dashboard...</p>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -95,7 +126,7 @@ export default function OnboardingPage() {
       <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
         <div className="sm:mx-auto sm:w-full sm:max-w-md">
           <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-            Welcome to PhotoBio
+            Welcome to TPBM Protocols
           </h2>
           <p className="mt-2 text-center text-sm text-gray-600">
             Let's set up your provider profile

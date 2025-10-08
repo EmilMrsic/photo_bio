@@ -15,23 +15,38 @@ export default function EditClientPage() {
     last_name: '',
     email: '',
     condition: '',
-    intake_type: '',
   });
+
+  // Helper function to extract client ID from slug
+  const getClientIdFromSlug = (slug: string): string => {
+    // Check if it's already a numeric ID
+    if (/^\d+$/.test(slug)) {
+      return slug;
+    }
+    // Extract ID from fname-lname-id format (e.g., "john-doe-13" -> "13")
+    const parts = slug.split('-');
+    const lastPart = parts[parts.length - 1];
+    if (/^\d+$/.test(lastPart)) {
+      return lastPart;
+    }
+    return slug; // Fallback to original
+  };
 
   useEffect(() => {
     const fetchClient = async () => {
       if (!id) return;
-      
+
       try {
         setLoading(true);
-        const clientData = await clientAPI.getClient(id as string);
+        // Extract numeric ID from slug
+        const clientId = getClientIdFromSlug(id as string);
+        const clientData = await clientAPI.getClient(clientId);
         setClient(clientData);
         setFormData({
           first_name: clientData.first_name || '',
           last_name: clientData.last_name || '',
           email: clientData.email || '',
           condition: clientData.condition || '',
-          intake_type: clientData.intake_type || '',
         });
       } catch (err) {
         console.error('Error fetching client:', err);
@@ -66,7 +81,6 @@ export default function EditClientPage() {
         last_name: formData.last_name,
         email: formData.email,
         condition: formData.condition,
-        intake_type: formData.intake_type,
       });
       
       // Redirect back to client detail page
@@ -188,25 +202,6 @@ export default function EditClientPage() {
                   <option value="Stroke recovery">Stroke recovery</option>
                   <option value="Chronic fatigue">Chronic fatigue</option>
                   <option value="Addictions">Addictions</option>
-                </select>
-              </div>
-
-              <div>
-                <label htmlFor="intake_type" className="block text-sm font-medium text-gray-700">
-                  Intake Type
-                </label>
-                <select
-                  name="intake_type"
-                  id="intake_type"
-                  value={formData.intake_type}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                >
-                  <option value="">Select intake type</option>
-                  <option value="initial">Initial Consultation</option>
-                  <option value="follow-up">Follow-up</option>
-                  <option value="assessment">Assessment</option>
-                  <option value="emergency">Emergency</option>
                 </select>
               </div>
 
