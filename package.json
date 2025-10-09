@@ -9,7 +9,7 @@
     "dev:codex": "PORT=5000 next dev",
     "dev:warp": "PORT=6001 next dev",
     "build": "next build",
-    "start": "next start",
+    "start": "next start -p 8080",
     "lint": "next lint",
     "test": "echo \"No tests yet\""
   },
