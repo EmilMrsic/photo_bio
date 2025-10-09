@@ -1,3 +1,12 @@
+/**
+ * PURPOSE: Gate client routes until Memberstack confirms session and role
+ * CONTEXT: Router enforces redirect paths for login, onboarding, and unauthorized flows
+ * DEPENDENCIES: useMemberstack useRouter
+ * RELATED_DOCS: @ref: docs/components/ProtectedRoute.md#protected_route_overview
+ * OWNERSHIP: web_app
+ * DATA_CLASS: internal
+ * ORIGIN: ai
+ */
 import { useEffect } from 'react';
 import { useRouter } from 'next/router';
 import { useMemberstack } from '../hooks/useMemberstack';

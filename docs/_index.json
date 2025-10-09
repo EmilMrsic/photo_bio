@@ -1,0 +1,48 @@
+{
+  "version": "1.0",
+  "generated_at": "2025-02-15T00:00:00Z",
+  "pages": [
+    {
+      "path": "docs/agents/docs_writer_agent.md",
+      "slug": "docs-writer-agent",
+      "data_class": "internal",
+      "public_url": null,
+      "anchors": [
+        "docs_writer_agent_decisions",
+        "docs_writer_agent_edges",
+        "docs_writer_agent_faq",
+        "docs_writer_agent_migration",
+        "docs_writer_agent_overview",
+        "docs_writer_agent_sequence"
+      ]
+    },
+    {
+      "path": "docs/agents/docs_sync_agent.md",
+      "slug": "docs-sync-agent",
+      "data_class": "internal",
+      "public_url": null,
+      "anchors": [
+        "docs_sync_agent_decisions",
+        "docs_sync_agent_edges",
+        "docs_sync_agent_faq",
+        "docs_sync_agent_migration",
+        "docs_sync_agent_overview",
+        "docs_sync_agent_sequence"
+      ]
+    },
+    {
+      "path": "docs/components/ProtectedRoute.md",
+      "slug": "protected-route",
+      "data_class": "internal",
+      "public_url": null,
+      "anchors": [
+        "protected_route_decisions",
+        "protected_route_edges",
+        "protected_route_faq",
+        "protected_route_migration",
+        "protected_route_overview",
+        "protected_route_sequence"
+      ]
+    }
+  ]
+}
