@@ -1,10 +1,10 @@
 import { NextApiRequest, NextApiResponse } from 'next';
-import OpenAI from 'openai';
+import OpenAIClient from 'openai';
 
 import { AuthenticationError, requireApiAuthentication } from '../../lib/server/auth';
 import { checkRateLimit, getClientKey } from '../../lib/server/rate-limit';
 
-const openai = new OpenAI({
+const openai = new OpenAIClient({
   apiKey: process.env.OPENAI_API_KEY,
 });
 

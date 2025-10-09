@@ -1,21 +1,31 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/router';
 
+interface MemberCustomFields {
+  role?: 'admin' | 'provider';
+  name?: string;
+  phone?: string;
+  organization?: string;
+  'first-name'?: string;
+  'last-name'?: string;
+  practice?: string;
+  'practice-type'?: string;
+}
+
 interface Member {
   id: string;
   email?: string; // Email might be at top level
   auth?: {
     email?: string; // Or in auth object
   };
-  customFields?: {
-    role?: 'admin' | 'provider';
-    name?: string;
-    phone?: string;
-    organization?: string;
-    'first-name'?: string;
-    'last-name'?: string;
-    practice?: string;
-    'practice-type'?: string;
+  customFields?: MemberCustomFields; // Some responses include fields at the top level
+  data?: {
+    id?: string;
+    auth?: {
+      email?: string;
+    };
+    customFields?: MemberCustomFields;
+    createdAt?: string;
   };
   createdAt?: string;
 }

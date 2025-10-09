@@ -32,7 +32,7 @@ export default function ProtectedRoute({ children, requiredRole }: ProtectedRout
         // Not authenticated, redirect to login
         console.log('ProtectedRoute - Redirecting to login (no member)');
         router.push('/login');
-      } else if (!role || role === '') {
+      } else if (!role) {
         // Authenticated but no role, redirect to onboarding
         console.log('ProtectedRoute - Redirecting to onboarding (no role)');
         router.push('/onboarding');
