@@ -1,28 +1,33 @@
-# --- Build stage (Debian, not Alpine) ---
+# ---- Build stage (Debian) ----
 FROM node:18-bookworm-slim AS builder
-ENV NODE_ENV=production
+ENV NODE_ENV=development
 WORKDIR /app
 
-# System deps for any native modules during build
+# System deps for native modules during build
 RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 build-essential ca-certificates git \
   && rm -rf /var/lib/apt/lists/*
 
-# Install deps
+# Install deps based on lockfile
 COPY package*.json ./
+# if your lockfile was created with npm 10+, npm 9 still understands it; npm ci will error if integrity mismatches
 RUN npm ci
 
 # Copy source and build
 COPY . .
-# Generate standalone output for Cloud Run
+# Produce standalone server output for production
 RUN npm run build
 
-# --- Runtime stage ---
+# ---- Runtime stage (Debian) ----
 FROM node:18-bookworm-slim AS runner
 ENV NODE_ENV=production
 WORKDIR /app
 
-# Copy the standalone server and static assets produced by Next
+# Only prod deps in the final image
+COPY package*.json ./
+RUN npm ci --omit=dev
+
+# Copy standalone server and static assets
 COPY --from=builder /app/.next/standalone ./
 COPY --from=builder /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
@@ -31,29 +36,5 @@ COPY --from=builder /app/public ./public
 ENV PORT=8080
 EXPOSE 8080
 
-# Start the Next standalone server (present in .next/standalone)
+# The standalone output includes server.js at the root
 CMD ["node", "server.js"]
-# Use the official Node 18 LTS image
-FROM node:18-alpine AS builder
-
-WORKDIR /app
-
-# Copy package files and install deps
-COPY package*.json ./
-RUN npm ci
-
-# Copy rest of the app and build it
-COPY . .
-RUN npm run build
-
-# Production image
-FROM node:18-alpine
-WORKDIR /app
-
-ENV NODE_ENV=production
-COPY --from=builder /app ./
-
-EXPOSE 8080
-
-# Start the app
-CMD ["npm", "start"]
