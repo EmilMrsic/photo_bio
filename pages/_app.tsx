@@ -16,18 +16,15 @@ export default function App({ Component, pageProps }: AppProps) {
           return;
         }
         try {
-          const masked = `${publicKey.slice(0, 6)}…${publicKey.slice(-4)}`;
-          console.info("Memberstack: initializing with key", masked);
-          console.info("Memberstack: full key length:", publicKey.length);
-          console.info("Memberstack: key starts with 'pk_sb_':", publicKey.startsWith('pk_sb_'));
           const initOptions: any = { publicKey, publishableKey: publicKey };
           if (appId) {
             initOptions.appId = appId;
-            console.info("Memberstack: using appId", appId);
           }
           const memberstack = memberstackDOM.default.init(initOptions);
-          // Make memberstack available globally
           (window as any).memberstack = memberstack;
+          if (process.env.NODE_ENV !== 'production') {
+            console.info('Memberstack initialized');
+          }
         } catch (e) {
           console.error("Memberstack init failed:", e);
         }

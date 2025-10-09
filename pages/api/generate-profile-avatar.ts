@@ -1,6 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
 
+import { AuthenticationError, requireApiAuthentication } from '../../lib/server/auth';
+import { checkRateLimit, getClientKey } from '../../lib/server/rate-limit';
+
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
 });
@@ -11,6 +14,21 @@ export default async function handler(
 ) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
+  }
+
+  const rateResult = checkRateLimit(getClientKey(req), { max: 20, windowMs: 60_000 });
+  if (!rateResult.success) {
+    return res.status(429).json({ error: 'Rate limit exceeded', retryAfterSeconds: rateResult.retryAfterSeconds });
+  }
+
+  try {
+    await requireApiAuthentication(req);
+  } catch (error) {
+    const status = error instanceof AuthenticationError ? error.statusCode : 401;
+    return res.status(status).json({
+      error: 'Unauthorized',
+      details: error instanceof Error ? error.message : 'Missing credentials',
+    });
   }
 
   const { userId } = req.body;
@@ -44,17 +62,17 @@ export default async function handler(
   } catch (error) {
     console.error('Error generating profile avatar:', error);
 
-    // Check if it's an OpenAI API error
     if (error instanceof Error && error.message.includes('billing')) {
       return res.status(402).json({
         error: 'Image generation requires an active OpenAI subscription with DALL-E access',
-        details: 'Please ensure your OpenAI account has access to DALL-E API'
+        details: 'Please ensure your OpenAI account has access to DALL-E API',
       });
     }
 
-    res.status(500).json({
+    const status = error instanceof AuthenticationError ? error.statusCode : 500;
+    res.status(status).json({
       error: 'Failed to generate profile avatar',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }

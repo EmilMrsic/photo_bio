@@ -67,10 +67,26 @@ npm run dev:codex
 
 Required environment variables (see `.env.example`):
 
-- `NEXT_PUBLIC_MEMBERSTACK_PUBLIC_KEY` - Memberstack public key
-- `MEMBERSTACK_SECRET_KEY` - Memberstack secret key
-- `NEXT_PUBLIC_XANO_API_URL` - Xano API endpoint
-- `OPENAI_API_KEY` - OpenAI API key for PDF analysis
+- `NEXT_PUBLIC_MEMBERSTACK_PUBLIC_KEY` – Memberstack publishable key
+- `NEXT_PUBLIC_MEMBERSTACK_APP_ID` – Memberstack app identifier (optional)
+- `NEXT_PUBLIC_XANO_API_URL` – Xano REST API base URL
+- `OPENAI_API_KEY` – OpenAI API key for AI generation
+- `MEMBERSTACK_SECRET_KEY` – Server-side key used to verify Memberstack sessions
+- `MEMBERSTACK_VERIFY_ENDPOINT` – Override Memberstack token verification endpoint if needed
+- `API_ACCESS_TOKEN` – Optional fallback server token for scheduled jobs
+- `GCS_BUCKET_NAME` – Google Cloud Storage bucket for generated assets
+- `GCP_PROJECT_ID` – Google Cloud project that owns the bucket
+
+### Google Cloud configuration checklist
+
+Use the [Google Cloud Deployment Playbook](./GOOGLE_CLOUD_SETUP.md) for a step-by-step walkthrough. At a high level you will:
+
+1. Enable the required Google Cloud APIs (Cloud Storage, IAM Service Account Credentials, Cloud Run, Artifact Registry, Secret Manager).
+2. Create a dedicated Cloud Storage bucket, grant a service account `Storage Object Admin`, and bind it to the bucket.
+3. Store service account credentials securely via Workload Identity or Secret Manager and expose them using `GOOGLE_APPLICATION_CREDENTIALS` if needed.
+4. Configure secrets and environment variables (`OPENAI_API_KEY`, `MEMBERSTACK_SECRET_KEY`, `API_ACCESS_TOKEN`, `GCS_BUCKET_NAME`, `GCP_PROJECT_ID`, etc.).
+5. Deploy or redeploy the Cloud Run service with the new service account and configuration values.
+
 
 ## 🛠 Tech Stack
 
@@ -78,7 +94,7 @@ Required environment variables (see `.env.example`):
 - **Authentication:** Memberstack
 - **Backend:** Xano
 - **AI Integration:** OpenAI API
-- **File Storage:** Xano file uploads
+- **File Storage:** Google Cloud Storage for generated media
 
 ## 📝 Current Features
 

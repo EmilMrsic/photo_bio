@@ -23,25 +23,54 @@ export default function BlogAI() {
   const [imagePrompt, setImagePrompt] = useState('');
   const [generatingImage, setGeneratingImage] = useState(false);
 
+  const requireAuthHeaders = async (): Promise<Record<string, string>> => {
+    if (typeof window === 'undefined') {
+      throw new Error('Authentication is only available in the browser.');
+    }
+
+    const memberstack = (window as any).memberstack;
+    if (!memberstack) {
+      throw new Error('Memberstack is still initializing. Please refresh and try again.');
+    }
+
+    const member = await memberstack.getCurrentMember();
+    const token = member?.auth?.token;
+    if (!token) {
+      throw new Error('You must be signed in to use the AI tools.');
+    }
+
+    return {
+      Authorization: `Bearer ${token}`,
+    };
+  };
+
+  const readErrorMessage = async (response: Response) => {
+    const payload = await response.json().catch(() => ({}));
+    return payload?.details || payload?.error || response.statusText;
+  };
+
   const handleGenerateBlog = async () => {
     if (!inputText.trim()) return;
 
     setLoading(true);
     try {
+      const authHeaders = await requireAuthHeaders();
       const response = await fetch('/api/generate-blog', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ input: inputText }),
       });
 
-      if (!response.ok) throw new Error('Failed to generate blog');
+      if (!response.ok) {
+        throw new Error(await readErrorMessage(response));
+      }
 
       const data = await response.json();
       setBlogData(data);
       setStep('headlines');
     } catch (error) {
       console.error('Error generating blog:', error);
-      alert('Failed to generate blog content. Please try again.');
+      alert(error instanceof Error ? error.message : 'Failed to generate blog content. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -52,17 +81,20 @@ export default function BlogAI() {
     setLoading(true);
 
     try {
+      const authHeaders = await requireAuthHeaders();
       const response = await fetch('/api/generate-blog-content', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
+        body: JSON.stringify({
           input: inputText,
           headline,
           keywords: blogData?.keywords || []
         }),
       });
 
-      if (!response.ok) throw new Error('Failed to generate blog content');
+      if (!response.ok) {
+        throw new Error(await readErrorMessage(response));
+      }
 
       const data = await response.json();
       setBlogData({
@@ -75,7 +107,7 @@ export default function BlogAI() {
       setStep('preview');
     } catch (error) {
       console.error('Error generating blog content:', error);
-      alert('Failed to generate blog content. Please try again.');
+      alert(error instanceof Error ? error.message : 'Failed to generate blog content. Please try again.');
     } finally {
       setLoading(false);
     }
@@ -84,19 +116,22 @@ export default function BlogAI() {
   const handleGenerateImage = async () => {
     setGeneratingImage(true);
     try {
+      const authHeaders = await requireAuthHeaders();
       const response = await fetch('/api/generate-blog-image', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({ prompt: imagePrompt }),
       });
 
-      if (!response.ok) throw new Error('Failed to generate image');
+      if (!response.ok) {
+        throw new Error(await readErrorMessage(response));
+      }
 
       const data = await response.json();
       setImageUrl(data.imageUrl);
     } catch (error) {
       console.error('Error generating image:', error);
-      alert('Failed to generate image. Please try again.');
+      alert(error instanceof Error ? error.message : 'Failed to generate image. Please try again.');
     } finally {
       setGeneratingImage(false);
     }
@@ -111,22 +146,25 @@ export default function BlogAI() {
         
         try {
           // Upload to server
+          const authHeaders = await requireAuthHeaders();
           const response = await fetch('/api/upload-blog-image', {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            headers: { 'Content-Type': 'application/json', ...authHeaders },
             body: JSON.stringify({
               imageData: base64,
               filename: file.name
             }),
           });
 
-          if (!response.ok) throw new Error('Failed to upload image');
+          if (!response.ok) {
+            throw new Error(await readErrorMessage(response));
+          }
 
           const data = await response.json();
           setImageUrl(data.imageUrl);
         } catch (error) {
           console.error('Error uploading image:', error);
-          alert('Failed to upload image. Please try again.');
+          alert(error instanceof Error ? error.message : 'Failed to upload image. Please try again.');
         }
       };
       reader.readAsDataURL(file);
@@ -137,9 +175,10 @@ export default function BlogAI() {
     if (!selectedHeadline || !editableContent) return;
 
     try {
+      const authHeaders = await requireAuthHeaders();
       const response = await fetch('/api/save-blog', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', ...authHeaders },
         body: JSON.stringify({
           title: selectedHeadline,
           content: editableContent,
@@ -149,7 +188,7 @@ export default function BlogAI() {
       });
 
       if (!response.ok) {
-        throw new Error('Failed to save blog');
+        throw new Error(await readErrorMessage(response));
       }
 
       const data = await response.json();
@@ -162,7 +201,7 @@ export default function BlogAI() {
       
     } catch (error) {
       console.error('Error publishing blog:', error);
-      alert('Failed to publish blog. Please try again.');
+      alert(error instanceof Error ? error.message : 'Failed to publish blog. Please try again.');
     }
   };
 

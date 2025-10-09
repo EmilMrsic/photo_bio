@@ -1,8 +1,9 @@
 import { NextApiRequest, NextApiResponse } from 'next';
 import OpenAI from 'openai';
-import fs from 'fs';
-import path from 'path';
-import https from 'https';
+
+import { AuthenticationError, requireApiAuthentication } from '../../lib/server/auth';
+import { checkRateLimit, getClientKey } from '../../lib/server/rate-limit';
+import { uploadBase64Image } from '../../lib/server/storage';
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -16,6 +17,28 @@ export default async function handler(
     return res.status(405).json({ error: 'Method not allowed' });
   }
 
+  const rateResult = checkRateLimit(getClientKey(req), {
+    max: 10,
+    windowMs: 60_000,
+  });
+
+  if (!rateResult.success) {
+    return res.status(429).json({
+      error: 'Rate limit exceeded',
+      retryAfterSeconds: rateResult.retryAfterSeconds,
+    });
+  }
+
+  try {
+    await requireApiAuthentication(req);
+  } catch (error) {
+    const status = error instanceof AuthenticationError ? error.statusCode : 401;
+    return res.status(status).json({
+      error: 'Unauthorized',
+      details: error instanceof Error ? error.message : 'Missing credentials',
+    });
+  }
+
   const { prompt } = req.body;
 
   if (!prompt || typeof prompt !== 'string') {
@@ -23,67 +46,51 @@ export default async function handler(
   }
 
   try {
-    // Enhance the prompt for better DALL-E results
     const enhancedPrompt = `${prompt}. Style: Professional medical photography, clean and modern, high quality, photorealistic, bright and welcoming atmosphere, no text or logos`;
 
     const response = await openai.images.generate({
       prompt: enhancedPrompt,
       n: 1,
       size: '1024x1024',
-      response_format: 'url',
+      response_format: 'b64_json',
     });
 
-    const openAiImageUrl = response.data[0]?.url;
+    const openAiImage = response.data[0]?.b64_json;
 
-    if (!openAiImageUrl) {
-      throw new Error('No image URL returned from OpenAI');
+    if (!openAiImage) {
+      throw new Error('No image data returned from OpenAI');
     }
 
-    // Download the image from OpenAI and save locally
-    const timestamp = Date.now();
-    const filename = `ai-generated-${timestamp}.png`;
-    const localPath = path.join(process.cwd(), 'public', 'blog-images', filename);
-    const publicUrl = `/blog-images/${filename}`;
-
-    // Download image from OpenAI
-    await new Promise((resolve, reject) => {
-      const file = fs.createWriteStream(localPath);
-      https.get(openAiImageUrl, (response) => {
-        response.pipe(file);
-        file.on('finish', () => {
-          file.close();
-          resolve(true);
-        });
-      }).on('error', (err) => {
-        fs.unlink(localPath, () => {}); // Delete the file on error
-        reject(err);
-      });
+    const uploadResult = await uploadBase64Image({
+      base64Data: openAiImage,
+      contentType: 'image/png',
+      folder: 'blog-images',
+      makePublic: true,
     });
 
     res.status(200).json({
-      imageUrl: publicUrl,
-      prompt: enhancedPrompt
+      imageUrl: uploadResult.publicUrl,
+      storagePath: uploadResult.filePath,
+      prompt: enhancedPrompt,
     });
-
   } catch (error) {
     console.error('Error generating image:', error);
-    
-    // Check if it's an OpenAI API error
+
     if (error instanceof Error && error.message.includes('billing')) {
-      return res.status(402).json({ 
+      return res.status(402).json({
         error: 'Image generation requires an active OpenAI subscription with DALL-E access',
-        details: 'Please ensure your OpenAI account has access to DALL-E API'
+        details: 'Please ensure your OpenAI account has access to DALL-E API',
       });
     }
 
-    res.status(500).json({ 
+    const status = error instanceof AuthenticationError ? error.statusCode : 500;
+    res.status(status).json({
       error: 'Failed to generate image',
-      details: error instanceof Error ? error.message : 'Unknown error'
+      details: error instanceof Error ? error.message : 'Unknown error',
     });
   }
 }
 
-// Configure larger body size limit for potential future base64 image handling
 export const config = {
   api: {
     bodyParser: {
