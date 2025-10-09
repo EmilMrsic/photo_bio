@@ -8,14 +8,13 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     python3 build-essential ca-certificates git \
   && rm -rf /var/lib/apt/lists/*
 
-# Install deps based on lockfile
+# Install deps using npm install (more tolerant than npm ci in CI)
 COPY package*.json ./
-# if your lockfile was created with npm 10+, npm 9 still understands it; npm ci will error if integrity mismatches
-RUN npm ci
+RUN npm install
 
 # Copy source and build
 COPY . .
-# Produce standalone server output for production
+# Ensure standalone output (set in next.config.js)
 RUN npm run build
 
 # ---- Runtime stage (Debian) ----
@@ -23,9 +22,9 @@ FROM node:18-bookworm-slim AS runner
 ENV NODE_ENV=production
 WORKDIR /app
 
-# Only prod deps in the final image
+# Only prod deps in final image
 COPY package*.json ./
-RUN npm ci --omit=dev
+RUN npm install --omit=dev
 
 # Copy standalone server and static assets
 COPY --from=builder /app/.next/standalone ./
