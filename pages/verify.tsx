@@ -6,11 +6,20 @@ export default function VerifyPage() {
   const [code, setCode] = useState(['', '', '', '', '', '']);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
+  const [email, setEmail] = useState('');
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
   const router = useRouter();
   const { verifyCode } = useMemberstack();
-  
-  const email = typeof window !== 'undefined' ? sessionStorage.getItem('login_email') : '';
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedEmail = sessionStorage.getItem('login_email') || '';
+      if (!storedEmail) {
+        router.replace('/login');
+      }
+      setEmail(storedEmail);
+    }
+  }, [router]);
 
   useEffect(() => {
     // Focus first input on mount
@@ -115,7 +124,6 @@ export default function VerifyPage() {
   };
 
   if (!email) {
-    router.push('/login');
     return null;
   }
 
@@ -141,7 +149,9 @@ export default function VerifyPage() {
                 {code.map((digit, index) => (
                   <input
                     key={index}
-                    ref={(el) => (inputRefs.current[index] = el)}
+                    ref={(el) => {
+                      inputRefs.current[index] = el;
+                    }}
                     type="text"
                     maxLength={1}
                     value={digit}

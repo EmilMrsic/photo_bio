@@ -14,6 +14,11 @@ export default function SendToClientModal({ client, protocol, onClose }: SendToC
   const [shareLink, setShareLink] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
 
+  const clientName = [client.first_name, client.last_name]
+    .filter(Boolean)
+    .join(' ')
+    .trim() || client.email || 'Client';
+
   const handleSend = async () => {
     if (!client.id) {
       setError('Client ID is missing');
@@ -54,7 +59,7 @@ export default function SendToClientModal({ client, protocol, onClose }: SendToC
           <div>
             <div className="mt-3 text-center sm:mt-5">
               <h3 className="text-lg leading-6 font-medium text-gray-900" id="modal-headline">
-                Send Protocol to {client.name}
+                Send Protocol to {clientName}
               </h3>
               <div className="mt-2">
                 <textarea

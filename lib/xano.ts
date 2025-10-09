@@ -391,7 +391,12 @@ export const clientAPI = {
   },
 
   // Upload PDF to Xano MAPS_PDF endpoint with client information
-  async uploadMapsPDF(file: File, clientEmail: string, firstName: string, lastName: string): Promise<{ url: string }> {
+  async uploadMapsPDF(
+    file: File,
+    clientEmail: string,
+    firstName: string,
+    lastName: string
+  ): Promise<{ url: string; path?: string }> {
     try {
       const formData = new FormData();
       // New client documents system parameters
@@ -420,7 +425,7 @@ export const clientAPI = {
       // Return the file path/URL from the response - Xano returns 'path' field
       return {
         url: result.file_url || result.url || result.path || '',
-        path: result.path || ''
+        path: result.path || undefined
       };
     } catch (error) {
       console.error('Error uploading MAPS PDF:', error);

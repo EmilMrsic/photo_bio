@@ -40,15 +40,17 @@ export default async function handler(
     return res.status(400).json({ error: 'Invalid image data' });
   }
 
-  const base64Match = imageData.match(/^data:(?<type>[^;]+);base64,(?<data>.+)$/);
-  if (!base64Match?.groups?.data) {
+  const base64Match = imageData.match(/^data:([^;]+);base64,(.+)$/);
+  if (!base64Match) {
     return res.status(400).json({ error: 'Image data must be a base64 data URL' });
   }
 
+  const [, contentType, base64Data] = base64Match;
+
   try {
     const uploadResult = await uploadBase64Image({
-      base64Data: base64Match.groups.data,
-      contentType: base64Match.groups.type,
+      base64Data,
+      contentType,
       filename,
       folder: 'blog-images',
       makePublic: true,
