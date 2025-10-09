@@ -2,7 +2,7 @@ import { NextApiRequest, NextApiResponse } from 'next';
 import formidable from 'formidable';
 import fs from 'fs';
 import path from 'path';
-import OpenAI from 'openai';
+import OpenAIClient from 'openai';
 import pdf from 'pdf-parse';
 
 // Disable Next.js body parsing to handle file uploads
@@ -12,7 +12,7 @@ export const config = {
   },
 };
 
-const openai = new OpenAI({
+  const openai = new OpenAIClient({
   apiKey: process.env.OPENAI_API_KEY,
 });
 
