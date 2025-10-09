@@ -1,3 +1,111 @@
+# Neuralight Pro - Multi-Agent Development Setup
+
+## 🧱 Overview
+
+This repository uses a multi-branch setup to support parallel AI agent development. Each branch represents a different AI agent's workspace, allowing isolated testing while preserving a clean production-grade main branch.
+
+## 📁 Branch Structure
+
+```
+branches:
+├── main        ← Production/stable
+├── claude      ← Claude agent experiments
+├── codex       ← Codex agent experiments
+├── warp        ← Warp agent experiments (current)
+```
+
+## 🚀 Getting Started
+
+1. **Clone the repository:**
+   ```bash
+   git clone https://github.com/EmilMrsic/photo_bio.git
+   cd photo_bio
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Set up environment variables:**
+   ```bash
+   cp .env.example .env.local
+   # Edit .env.local with your actual API keys
+   ```
+
+## 🧪 Local Development with Port Isolation
+
+Each agent branch runs on its own port to allow parallel development:
+
+- **Main branch:** `npm run dev:main` (port 3000)
+- **Claude branch:** `npm run dev:claude` (port 4000)
+- **Codex branch:** `npm run dev:codex` (port 5000)
+- **Warp branch:** `npm run dev:warp` (port 6001)
+
+### Switching Between Branches
+
+```bash
+# Switch to Claude branch
+git checkout claude
+npm install  # In case dependencies differ
+npm run dev:claude
+
+# Switch to Codex branch
+git checkout codex
+npm install
+npm run dev:codex
+```
+
+## 🔁 Workflow Rules
+
+1. **Never push directly to main** - All changes must go through a pull request
+2. **Test thoroughly on agent branches** before creating PRs
+3. **Keep main stable** - It represents the production-ready code
+4. **Document significant changes** in your commits and PRs
+
+## 📋 Environment Variables
+
+Required environment variables (see `.env.example`):
+
+- `NEXT_PUBLIC_MEMBERSTACK_PUBLIC_KEY` – Memberstack publishable key
+- `NEXT_PUBLIC_MEMBERSTACK_APP_ID` – Memberstack app identifier (optional)
+- `NEXT_PUBLIC_XANO_API_URL` – Xano REST API base URL
+- `OPENAI_API_KEY` – OpenAI API key for AI generation
+- `MEMBERSTACK_SECRET_KEY` – Server-side key used to verify Memberstack sessions
+- `MEMBERSTACK_VERIFY_ENDPOINT` – Override Memberstack token verification endpoint if needed
+- `API_ACCESS_TOKEN` – Optional fallback server token for scheduled jobs
+- `GCS_BUCKET_NAME` – Google Cloud Storage bucket for generated assets
+- `GCP_PROJECT_ID` – Google Cloud project that owns the bucket
+
+### Google Cloud configuration checklist
+
+Use the [Google Cloud Deployment Playbook](./GOOGLE_CLOUD_SETUP.md) for a step-by-step walkthrough. At a high level you will:
+
+1. Enable the required Google Cloud APIs (Cloud Storage, IAM Service Account Credentials, Cloud Run, Artifact Registry, Secret Manager).
+2. Create a dedicated Cloud Storage bucket, grant a service account `Storage Object Admin`, and bind it to the bucket.
+3. Store service account credentials securely via Workload Identity or Secret Manager and expose them using `GOOGLE_APPLICATION_CREDENTIALS` if needed.
+4. Configure secrets and environment variables (`OPENAI_API_KEY`, `MEMBERSTACK_SECRET_KEY`, `API_ACCESS_TOKEN`, `GCS_BUCKET_NAME`, `GCP_PROJECT_ID`, etc.).
+5. Deploy or redeploy the Cloud Run service with the new service account and configuration values.
+
+
+## 🛠 Tech Stack
+
+- **Frontend:** Next.js, React, TypeScript, Tailwind CSS
+- **Authentication:** Memberstack
+- **Backend:** Xano
+- **AI Integration:** OpenAI API
+- **File Storage:** Google Cloud Storage for generated media
+
+## 📝 Current Features
+
+- Provider authentication and onboarding
+- Client management system
+- PDF upload and analysis
+- Protocol extraction from brain maps
+- Blog generation with AI
+- Client document sharing
+
+---
 
 # Neuralight Pro - Project Specification
 
