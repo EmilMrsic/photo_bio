@@ -139,6 +139,9 @@ export default function NewClientPage() {
             console.log('FormData prepared, calling /api/extract-protocol');
             const response = await fetch('/api/extract-protocol', {
               method: 'POST',
+              headers: {
+                'Authorization': `Bearer ${process.env.NEXT_PUBLIC_API_ACCESS_TOKEN}`,
+              },
               body: protocolFormData,
             });
 

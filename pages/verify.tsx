@@ -13,9 +13,14 @@ export default function VerifyPage() {
   const email = typeof window !== 'undefined' ? sessionStorage.getItem('login_email') : '';
 
   useEffect(() => {
+    // Redirect if no email
+    if (!email) {
+      router.push('/login');
+      return;
+    }
     // Focus first input on mount
     inputRefs.current[0]?.focus();
-  }, []);
+  }, [email, router]);
 
   const handleChange = (index: number, value: string) => {
     if (value.length > 1) {
@@ -115,7 +120,6 @@ export default function VerifyPage() {
   };
 
   if (!email) {
-    router.push('/login');
     return null;
   }
 
@@ -141,7 +145,9 @@ export default function VerifyPage() {
                 {code.map((digit, index) => (
                   <input
                     key={index}
-                    ref={(el) => (inputRefs.current[index] = el)}
+                    ref={(el) => {
+                      inputRefs.current[index] = el;
+                    }}
                     type="text"
                     maxLength={1}
                     value={digit}
