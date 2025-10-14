@@ -76,7 +76,7 @@ export function useMemberstack() {
         }
 
         // Only do automatic redirects on specific pages
-        const role = currentMember.data?.customFields?.role;
+        const role = currentMember.customFields?.role;
         const currentPath = router.pathname;
 
         // Check if we have prefetched practice data to skip onboarding
@@ -158,7 +158,7 @@ export function useMemberstack() {
         if (result.data?.member) {
           setMember(result.data.member);
           // Check if member needs onboarding
-          const role = result.data.member.data?.customFields?.role;
+          const role = result.data.member?.customFields?.role;
 
           // SKIP ONBOARDING if provider has practice field in Xano
           if (hasPractice) {
@@ -320,6 +320,6 @@ export function useMemberstack() {
     updateMember,
     logout,
     isAuthenticated: !!member,
-    role: member?.data?.customFields?.role,
+    role: member?.customFields?.role,
   };
 }
