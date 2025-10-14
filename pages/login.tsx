@@ -66,14 +66,84 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50 flex flex-col justify-center py-12 sm:px-6 lg:px-8">
-      <div className="sm:mx-auto sm:w-full sm:max-w-md">
-        <h2 className="mt-6 text-center text-3xl font-extrabold text-gray-900">
-          Sign in to your account
-        </h2>
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-blue-50">
+      {/* Hero Section with Video */}
+      <div className="relative pt-16 pb-8">
+        <div className="mx-auto max-w-7xl px-6 lg:px-8">
+          <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16 items-center">
+            {/* Left Side - Headline */}
+            <div className="text-center lg:text-left">
+              <h1 className="text-4xl font-bold tracking-tight text-gray-900 sm:text-5xl">
+                QEEG-driven photobiomodulation for better brain health
+              </h1>
+              <p className="mt-4 text-lg text-gray-600">
+                Sign in to access your personalized TPBM protocols
+              </p>
+            </div>
+
+            {/* Right Side - Video Embed */}
+            <div className="relative w-full">
+              <div className="relative w-full pb-[56.25%] rounded-2xl shadow-2xl ring-1 ring-gray-900/10 overflow-hidden bg-gray-900">
+                <div id="video-container" className="absolute top-0 left-0 w-full h-full">
+                  {/* Video will be loaded here when thumbnail is clicked */}
+                </div>
+
+                {/* Custom Thumbnail Overlay */}
+                <div
+                  id="video-thumbnail"
+                  className="absolute top-0 left-0 w-full h-full cursor-pointer group z-10"
+                  onClick={() => {
+                    const thumbnail = document.getElementById('video-thumbnail');
+                    const container = document.getElementById('video-container');
+                    if (thumbnail && container) {
+                      // Hide thumbnail
+                      thumbnail.style.display = 'none';
+                      // Load iframe with autoplay
+                      container.innerHTML = `
+                        <iframe
+                          class="absolute top-0 left-0 w-full h-full border-0"
+                          src="https://customer-f57etvnofv3kxoyh.cloudflarestream.com/4ca36ee41542c9962b04eb69e77e4790/iframe?autoplay=true"
+                          title="Dr. Guy Annunziata explains QEEG-guided TPBM"
+                          allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
+                          allowfullscreen
+                        ></iframe>
+                      `;
+                    }
+                  }}
+                >
+                  <img
+                    src="/tpbm intro video thumbnail.png"
+                    alt="Video thumbnail"
+                    className="absolute top-0 left-0 w-full h-full object-cover"
+                    onError={(e) => {
+                      console.error('Thumbnail failed to load');
+                      e.currentTarget.style.backgroundColor = '#1f2937';
+                    }}
+                  />
+                  {/* Play Button Overlay */}
+                  <div className="absolute inset-0 flex items-center justify-center z-20">
+                    <div className="w-20 h-20 rounded-full bg-white/90 flex items-center justify-center group-hover:bg-white group-hover:scale-110 transition-all duration-200 shadow-xl">
+                      <svg className="w-10 h-10 text-indigo-600 ml-1" fill="currentColor" viewBox="0 0 24 24">
+                        <path d="M8 5v14l11-7z"/>
+                      </svg>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
+      {/* Login Form Section */}
+      <div className="py-12 sm:px-6 lg:px-8">
+        <div className="sm:mx-auto sm:w-full sm:max-w-md">
+          <h2 className="text-center text-2xl font-bold text-gray-900">
+            Sign in to your account
+          </h2>
+        </div>
+
+        <div className="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
         <div className="bg-white py-8 px-4 shadow sm:rounded-lg sm:px-10">
           {!emailSent ? (
             <form className="space-y-6" onSubmit={handleSubmit}>
@@ -144,6 +214,7 @@ export default function LoginPage() {
               </p>
             </div>
           )}
+          </div>
         </div>
       </div>
     </div>
