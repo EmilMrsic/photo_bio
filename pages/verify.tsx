@@ -12,24 +12,24 @@ export default function VerifyPage() {
   const { verifyCode } = useMemberstack();
 
   useEffect(() => {
+    // Load email from sessionStorage and handle redirect in one effect
     if (typeof window !== 'undefined') {
       const storedEmail = sessionStorage.getItem('login_email') || '';
+
       if (!storedEmail) {
+        // No email found, redirect back to login
         router.replace('/login');
+        return;
       }
+
+      // Email found, set it and focus first input
       setEmail(storedEmail);
+      // Small delay to ensure input is rendered before focusing
+      setTimeout(() => {
+        inputRefs.current[0]?.focus();
+      }, 100);
     }
   }, [router]);
-
-  useEffect(() => {
-    // Redirect if no email
-    if (!email) {
-      router.push('/login');
-      return;
-    }
-    // Focus first input on mount
-    inputRefs.current[0]?.focus();
-  }, [email, router]);
 
   const handleChange = (index: number, value: string) => {
     if (value.length > 1) {
