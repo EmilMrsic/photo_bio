@@ -16,6 +16,11 @@ export default function LoginPage() {
     setError('');
     setLoading(true);
 
+    // Clear the logout flag so the user can log in again
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem('memberstack_logged_out');
+    }
+
     try {
       // STEP 1: Prefetch provider data from Xano (in background)
       console.log('[Login] Prefetching provider data for:', email);
