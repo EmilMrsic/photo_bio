@@ -22,9 +22,14 @@ export default function VerifyPage() {
   }, [router]);
 
   useEffect(() => {
+    // Redirect if no email
+    if (!email) {
+      router.push('/login');
+      return;
+    }
     // Focus first input on mount
     inputRefs.current[0]?.focus();
-  }, []);
+  }, [email, router]);
 
   const handleChange = (index: number, value: string) => {
     if (value.length > 1) {
