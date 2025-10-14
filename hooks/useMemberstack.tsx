@@ -65,6 +65,15 @@ export function useMemberstack() {
 
   const checkMember = async (ms: any) => {
     try {
+      const currentPath = router.pathname;
+
+      // Don't auto-authenticate on login/verify pages - user is trying to login
+      if (currentPath === '/login' || currentPath === '/verify') {
+        console.log('On login/verify page, skipping auto-authentication');
+        setLoading(false);
+        return;
+      }
+
       // Check if user explicitly logged out - if so, don't auto-authenticate
       if (typeof window !== 'undefined') {
         const hasLoggedOut = localStorage.getItem('memberstack_logged_out');
@@ -76,7 +85,9 @@ export function useMemberstack() {
       }
 
       const currentMember = await ms.getCurrentMember();
-      if (currentMember) {
+
+      // Only set member if they have valid data
+      if (currentMember && currentMember.data && currentMember.data.id) {
         console.log('Current member data:', currentMember);
         setMember(currentMember);
 
@@ -85,27 +96,10 @@ export function useMemberstack() {
           localStorage.removeItem('memberstack_logged_out');
         }
 
-        // Only do automatic redirects on specific pages
-        const role = currentMember.data?.customFields?.role;
-        const currentPath = router.pathname;
-
-        // Check if we have prefetched practice data to skip onboarding
-        const hasPractice = typeof window !== 'undefined' ? sessionStorage.getItem('has_practice') === 'true' : false;
-
-        // Only redirect from login/verify pages if user has a role
-        if (role && (currentPath === '/login' || currentPath === '/verify')) {
-          if (role === 'admin') {
-            router.push('/admin/dashboard');
-          } else if (role === 'provider') {
-            // If provider has practice, go straight to clients
-            if (hasPractice) {
-              console.log('[checkMember] Provider has practice - redirecting to clients');
-              window.location.href = '/clients';
-            } else {
-              router.push('/clients');
-            }
-          }
-        }
+        // User is authenticated with valid data
+        console.log('User is authenticated:', currentMember.data.id);
+      } else {
+        console.log('No valid member data found');
       }
     } catch (error) {
       console.error('Error checking member:', error);
@@ -329,7 +323,7 @@ export function useMemberstack() {
     verifyCode,
     updateMember,
     logout,
-    isAuthenticated: !!member,
+    isAuthenticated: !!member && !!member.data && !!member.data.id,
     role: member?.data?.customFields?.role,
   };
 }
