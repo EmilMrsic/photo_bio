@@ -16,51 +16,62 @@ const navigation = [
 const products = [
   {
     id: 'option-one',
-    title: 'Flexible Care Package',
-    productName: 'Neuronic LIGHT 1070',
-    tagline: 'Extend Patient Care & Grow Your Revenue',
+    title: 'Neuronics Light Package',
+    productName: 'Affordable. Portable. Powerful.',
+    tagline: 'Entry-Level tPBM System',
     features: [
-      'Flexible Dual-Use Design: Use it as your primary in-clinic device or deploy it as a take-home tool for continuous patient care.',
-      'Build a New Revenue Stream: Generate immediate income by renting the units to patients or reselling them directly for a profit.',
-      'AI-Powered Personalization: Generate hyper-personalized protocols directly from your client\'s individual BrainMaps.',
-      'Complete Turnkey System: Includes the Neuronic LIGHT helmet and a 12-month provider subscription to get you started.',
+      '1 year of unlimited AI-driven tPBM protocols',
+      'Unlimited clients',
+      'Direct drop-shipping to your client or your office',
+      'Perfect for providers who want to offer an affordable, at-home tPBM option',
+      'Ideal for patients focused on maintaining brain health, improving focus, and reducing stress',
+      'Reliable, full-coverage stimulation at an accessible price point',
     ],
-    bestFit: 'Providers seeking a flexible system to enhance client outcomes while generating new rental or retail revenue.',
-    price: '$2,095',
+    bestFit: 'The perfect entry point into tPBM technology. Delivers reliable, full-coverage stimulation at an accessible price point—ideal for clinics looking to expand their offerings or for patients seeking an at-home solution.',
+    price: '',
+    priceNote: '',
     cta: 'Get Started',
     checkoutUrl: 'https://buy.stripe.com/5kQfZh9Qi24xdyQ7zIe3e01',
     imagePlaceholder: '/main-images/side view of helmet.jpg',
   },
   {
     id: 'option-two',
-    title: 'Clinical Excellence Package',
-    productName: 'Neuradiant 1070',
-    tagline: 'The Gold Standard for In-Clinic Sessions',
+    title: 'Neuronics Neuroradiant 1070 Package',
+    productName: 'Clinical-Grade Precision. Peak Performance Results.',
+    tagline: 'Advanced Clinical-Grade System',
     features: [
-      'Dedicated Clinical Power: Designed specifically for the demands of a busy office, providing robust, targeted applications.',
-      'Unmatched Targeting Control: Utilize precise quadrant targeting and flexible frequency options for pinpoint-accurate sessions.',
-      'Intelligent & Adaptive Protocols: Our AI builds truly individualized protocols from your client\'s unique brain map data to maximize efficacy.',
-      'Elevate Your Practice: Position your clinic as a leader by offering the most advanced photobiomodulation services available.',
+      '1 year of unlimited AI-driven tPBM protocols',
+      'Unlimited clients',
+      'Direct drop-shipping to your client or your office',
+      'Advanced, research-grade tPBM system for your practice',
+      'Targeted 1070 nm near-infrared stimulation for deeper brain structures',
+      'Enhanced brain performance, recovery, and neurorehabilitation support',
+      'Premium technology for clinical and high-performance applications',
     ],
-    bestFit: 'Clinics dedicated to providing the most advanced in-office treatments and requiring the highest degree of precision.',
-    price: '$3,455',
+    bestFit: 'Delivers targeted 1070 nm near-infrared stimulation designed to reach deeper brain structures. Built for clinical and high-performance applications, it represents the next level of precision in tPBM technology.',
+    price: '',
+    priceNote: '',
     cta: 'Get Started',
     checkoutUrl: 'https://buy.stripe.com/cNi4gz8MecJb3Yg7zIe3e02',
     imagePlaceholder: '/main-images/Neuradiant Helmet.png',
   },
   {
     id: 'option-three',
-    title: 'AI Protocol Package',
-    productName: 'Protocol Subscription',
-    tagline: 'Unlock the Power of Your Existing Equipment',
+    title: 'QEEG-Driven Protocol Subscription Package',
+    productName: 'Personalized Light Therapy for Every Brain.',
+    tagline: 'Annual Subscription',
     features: [
-      'Unlimited AI-Powered Protocols: For 12 months, generate as many precise, QEEG-aligned protocols as you need for all your clients.',
-      'Upgrade Your Hardware\'s IQ: Leverage our powerful AI to create sophisticated protocols that elevate your treatment capabilities.',
-      'Seamless Compatibility: Designed to work flawlessly with existing 1070 nm infrared photobiomodulation systems.',
-      'Always Evolving: Receive continuous access to our latest protocol updates, ensuring your practice stays on the cutting edge.',
+      '1 year of unlimited AI-driven tPBM protocols',
+      'Unlimited clients',
+      'Unlimited QEEG uploads',
+      'Personalized tPBM protocols tailored to each client\'s brain activity',
+      'Translate brain maps into precise, data-driven light therapy plans',
+      'Deliver measurable, individualized results for every client',
+      'Strengthen clinical outcomes and reinforce your value as a BrainCore provider',
     ],
-    bestFit: 'Practices that want to maximize their existing PBM hardware investment with sophisticated, AI-driven intelligence.',
-    price: '$400',
+    bestFit: 'Upgrade from one-size-fits-all tPBM to QEEG-Driven Protocols—customized light stimulation plans created from each client\'s brain map.',
+    price: '',
+    priceNote: '',
     cta: 'Learn More',
     checkoutUrl: 'https://buy.stripe.com/aFabJ13rU10tgL24nwe3e00',
     imagePlaceholder: '/main-images/tpbm protocol setting on ios app.webp',
@@ -399,10 +410,13 @@ export default function Products() {
               {/* Right Column - Text */}
               <div>
                 <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                  Stop One-Size-Fits-All. Start Precision Brain Support.
+                  Precision-Guided Brain Stimulation Starts Here
                 </h2>
                 <p className="mt-6 text-lg leading-8 text-gray-700">
-                  Traditional photobiomodulation treats every patient the same. QEEG brain mapping shows where each brain is overactive, underactive, or out of balance. We translate that data into customized TPBM protocols that target exactly where support is needed—whether for focus, emotional balance, or stress resilience.
+                  Traditional photobiomodulation treats every patient the same. BrainCore's QEEG-Driven Protocols change that. Using brain mapping, we identify regions that would benefit from tPBM—then translate that data into customized tPBM stimulation protocols.
+                </p>
+                <p className="mt-4 text-lg leading-8 text-gray-700">
+                  Whether the goal is improving focus, emotional balance, or stress resilience, this approach delivers truly personalized care that integrates seamlessly with neurofeedback training.
                 </p>
 
                 {/* Bullets */}
@@ -413,11 +427,11 @@ export default function Products() {
                   </li>
                   <li className="flex items-start">
                     <CheckIcon className="h-6 w-6 text-indigo-600 shrink-0 mt-1" />
-                    <span className="ml-3 text-base text-gray-700">Builds personalized TPBM stimulation maps</span>
+                    <span className="ml-3 text-base text-gray-700">Builds personalized, QEEG-Driven tPBM protocols</span>
                   </li>
                   <li className="flex items-start">
                     <CheckIcon className="h-6 w-6 text-indigo-600 shrink-0 mt-1" />
-                    <span className="ml-3 text-base text-gray-700">Integrates seamlessly with neurofeedback training</span>
+                    <span className="ml-3 text-base text-gray-700">Integrates effortlessly with neurofeedback programs</span>
                   </li>
                 </ul>
               </div>
@@ -576,7 +590,7 @@ export default function Products() {
                     Upload brain map
                   </h3>
                   <p className="text-base text-gray-600">
-                    Providers already have the most recent map.
+                    Download your map report from BrainCore Maps website, and then upload that report into your tPBM account.
                   </p>
                 </div>
               </div>
@@ -753,6 +767,20 @@ export default function Products() {
                 Choose the TPBM Solution That Fits Your Practice
               </h2>
             </div>
+
+            {/* Neuronics Partnership Section */}
+            <div className="mx-auto max-w-4xl text-center mb-12 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 p-8 shadow-md ring-1 ring-indigo-200">
+              <h3 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl mb-3">
+                Neuronics tPBM Packages for BrainCore Providers
+              </h3>
+              <p className="text-lg font-semibold text-indigo-600 mb-4">
+                Precision Brain Stimulation. Exclusive BrainCore Benefits.
+              </p>
+              <p className="text-base leading-7 text-gray-700">
+                BrainCore is proud to partner with Neuronics to bring providers access to the most advanced transcranial photobiomodulation (tPBM) technology available today—at exclusive, members-only pricing. Each device uses gentle near-infrared light to boost cellular energy, improve circulation, and support overall brain performance.
+              </p>
+            </div>
+
             <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
               {products.map((product) => (
                 <div
@@ -805,18 +833,13 @@ export default function Products() {
                       </p>
                     </div>
 
-                    {/* Price and CTA - Bottom */}
+                    {/* CTA - Bottom */}
                     <div className="mt-4">
-                      <p className="flex items-baseline justify-center gap-x-2">
-                        <span className="text-4xl font-bold tracking-tight text-gray-900">
-                          {product.price}
-                        </span>
-                      </p>
                       <a
                         href={product.checkoutUrl}
-                        className="mt-4 block w-full rounded-md bg-indigo-600 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-colors"
+                        className="block w-full rounded-md bg-indigo-600 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-colors"
                       >
-                        Get Started
+                        {product.cta}
                       </a>
                     </div>
                   </div>
@@ -829,12 +852,9 @@ export default function Products() {
         {/* FAQ/Support Section */}
         <div className="bg-white py-16 sm:py-24">
           <div className="mx-auto max-w-3xl px-6 lg:px-8 text-center">
-            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
+            <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl mb-4">
               Not sure which option is right for you?
             </h2>
-            <p className="mt-6 text-lg leading-8 text-gray-600">
-              Schedule a consultation with our team to discuss your practice's specific needs.
-            </p>
             <div className="mt-10">
               <button
                 onClick={() => setIsContactModalOpen(true)}
@@ -844,6 +864,151 @@ export default function Products() {
               </button>
             </div>
           </div>
+
+          {/* Mini FAQ Section */}
+          <div className="mx-auto max-w-4xl px-6 lg:px-8 mt-16">
+            <div className="rounded-2xl bg-gradient-to-br from-indigo-50 to-blue-50 p-8 shadow-lg ring-1 ring-indigo-200">
+              <h3 className="text-2xl font-bold text-gray-900 mb-6 text-center">
+                Why Offer Neuronics tPBM Through BrainCore?
+              </h3>
+              <ul className="space-y-4">
+                <li className="flex items-start">
+                  <CheckIcon className="h-6 w-6 text-indigo-600 shrink-0 mt-1" />
+                  <div className="ml-3">
+                    <span className="font-semibold text-gray-900">Exclusive Provider Pricing</span>
+                    <span className="text-gray-700"> – Save 10% on every device with code BrainCore</span>
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <CheckIcon className="h-6 w-6 text-indigo-600 shrink-0 mt-1" />
+                  <div className="ml-3">
+                    <span className="font-semibold text-gray-900">Seamless Fulfillment</span>
+                    <span className="text-gray-700"> – Direct drop-shipping to clients or your practice</span>
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <CheckIcon className="h-6 w-6 text-indigo-600 shrink-0 mt-1" />
+                  <div className="ml-3">
+                    <span className="font-semibold text-gray-900">Revenue Growth</span>
+                    <span className="text-gray-700"> – Earn profits on every helmet sold</span>
+                  </div>
+                </li>
+                <li className="flex items-start">
+                  <CheckIcon className="h-6 w-6 text-indigo-600 shrink-0 mt-1" />
+                  <div className="ml-3">
+                    <span className="font-semibold text-gray-900">Personalized Care</span>
+                    <span className="text-gray-700"> – Enhance neurofeedback outcomes with QEEG-driven customization</span>
+                  </div>
+                </li>
+              </ul>
+              <p className="mt-8 text-center text-lg font-semibold text-gray-900">
+                Empower your patients. Expand your practice.
+              </p>
+              <p className="mt-2 text-center text-base text-gray-700">
+                With BrainCore + Neuronics, you can combine the power of light and data to deliver truly personalized brain health solutions.
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Product Comparison Table */}
+        <div className="bg-gray-50 py-16 sm:py-24">
+          <div className="mx-auto max-w-7xl px-6 lg:px-8">
+            <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">
+              Neuronics tPBM Package Comparison
+            </h3>
+            <div className="overflow-x-auto shadow-lg rounded-xl">
+              <table className="min-w-full divide-y divide-gray-200 bg-white">
+                <thead className="bg-indigo-600">
+                  <tr>
+                    <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-white">
+                      Package
+                    </th>
+                    <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-white">
+                      Description
+                    </th>
+                    <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-white">
+                      Includes
+                    </th>
+                    <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-white">
+                      Best For
+                    </th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-gray-200">
+                  <tr className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                      Neuronics Light Package
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      Entry-level tPBM system offering reliable, full-coverage stimulation at an accessible price.
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      <div className="space-y-1">
+                        <div className="flex items-center">
+                          <CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" />
+                          <span>1 year of unlimited AI-driven tPBM protocols</span>
+                        </div>
+                        <div className="flex items-center">
+                          <CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" />
+                          <span>Unlimited clients</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      Affordable at-home or in-office use; general brain wellness, focus, and stress support
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                      Neuronics Neuroradiant 1070 Package
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      Advanced, clinical-grade system featuring 1070 nm near-infrared light for deeper brain stimulation.
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      <div className="space-y-1">
+                        <div className="flex items-center">
+                          <CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" />
+                          <span>1 year of unlimited AI-driven tPBM protocols</span>
+                        </div>
+                        <div className="flex items-center">
+                          <CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" />
+                          <span>Unlimited clients</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      Professional-grade performance, neurorehabilitation, and cognitive optimization
+                    </td>
+                  </tr>
+                  <tr className="hover:bg-gray-50 transition-colors">
+                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">
+                      QEEG-Driven Protocol Subscription Package
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      Annual subscription for unlimited QEEG uploads to generate fully personalized tPBM protocols.
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      <div className="space-y-1">
+                        <div className="flex items-center">
+                          <CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" />
+                          <span>1 year of unlimited AI-driven tPBM protocols</span>
+                        </div>
+                        <div className="flex items-center">
+                          <CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" />
+                          <span>Unlimited clients</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">
+                      Clinics offering customized, data-driven light therapy tailored to each client
+                    </td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
         </div>
 
         {/* CTA Section */}
@@ -851,10 +1016,10 @@ export default function Products() {
           <div className="px-6 py-16 sm:px-6 sm:py-24 lg:px-8">
             <div className="mx-auto max-w-2xl text-center">
               <h2 className="text-3xl font-bold tracking-tight text-white sm:text-4xl">
-                Ready to expand your neurofeedback practice?
+                Ready to elevate your practice?
               </h2>
               <p className="mx-auto mt-6 max-w-xl text-lg leading-8 text-indigo-200">
-                Join providers across the country who are using QEEG-guided photobiomodulation to deliver better outcomes.
+                Use code <span className="font-bold text-white">BrainCore</span> to access exclusive provider pricing and start delivering precision, data-driven brain health solutions.
               </p>
               <div className="mt-10 flex items-center justify-center gap-x-6">
                 <a
