@@ -139,21 +139,21 @@ export default function ProtocolModal({ isOpen, onClose, protocolNumber, clientN
 
                       {/* Card Body */}
                       <div className="p-6 space-y-4">
-                        {/* Frequency */}
-                        <div className="flex items-start">
-                          <BoltIcon className="h-5 w-5 text-yellow-500 mr-3 mt-0.5" />
-                          <div>
-                            <p className="text-xs font-medium text-gray-500 uppercase">Frequency</p>
-                            <p className="text-lg font-bold text-gray-900">{phase.frequency_hz} Hz</p>
-                          </div>
-                        </div>
-
                         {/* Duration */}
                         <div className="flex items-start">
                           <ClockIcon className="h-5 w-5 text-blue-500 mr-3 mt-0.5" />
                           <div>
                             <p className="text-xs font-medium text-gray-500 uppercase">Duration</p>
                             <p className="text-lg font-bold text-gray-900">{phase.duration_min} minutes</p>
+                          </div>
+                        </div>
+
+                        {/* Frequency */}
+                        <div className="flex items-start">
+                          <BoltIcon className="h-5 w-5 text-yellow-500 mr-3 mt-0.5" />
+                          <div>
+                            <p className="text-xs font-medium text-gray-500 uppercase">Frequency</p>
+                            <p className="text-lg font-bold text-gray-900">{phase.frequency_hz} Hz</p>
                           </div>
                         </div>
 
