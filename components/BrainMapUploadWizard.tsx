@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { CONDITIONS, CONDITION_DISPLAY_NAMES } from '../lib/conditions';
 
 interface BrainMapUploadWizardProps {
@@ -18,6 +18,9 @@ export default function BrainMapUploadWizard({
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedCondition, setSelectedCondition] = useState<string>('');
   const [dragActive, setDragActive] = useState(false);
+  const [consentChecked, setConsentChecked] = useState(false);
+  const [consentError, setConsentError] = useState(false);
+  const consentRef = useRef<HTMLInputElement>(null);
 
   if (!isOpen) return null;
 
@@ -50,9 +53,16 @@ export default function BrainMapUploadWizard({
   };
 
   const handleNext = () => {
-    if (selectedFile) {
-      setStep(2);
+    if (!selectedFile) return;
+    if (!consentChecked) {
+      setConsentError(true);
+      if (consentRef.current) {
+        consentRef.current.focus();
+        consentRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
     }
+    setStep(2);
   };
 
   const handleBack = () => {
@@ -60,12 +70,22 @@ export default function BrainMapUploadWizard({
   };
 
   const handleSubmit = () => {
+    if (!consentChecked) {
+      setConsentError(true);
+      if (consentRef.current) {
+        consentRef.current.focus();
+        consentRef.current.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
     if (selectedFile && selectedCondition) {
       onSubmit(selectedFile, selectedCondition);
       // Reset state
       setStep(1);
       setSelectedFile(null);
       setSelectedCondition('');
+      setConsentChecked(false);
+      setConsentError(false);
     }
   };
 
@@ -75,6 +95,8 @@ export default function BrainMapUploadWizard({
     setSelectedFile(null);
     setSelectedCondition('');
     setDragActive(false);
+    setConsentChecked(false);
+    setConsentError(false);
     onClose();
   };
 
@@ -220,6 +242,37 @@ export default function BrainMapUploadWizard({
                   </div>
                 )}
               </div>
+
+              <div className="mt-4">
+                <div className="flex items-start">
+                  <div className="flex items-center h-5">
+                    <input
+                      ref={consentRef}
+                      id="brainmap-consent"
+                      name="brainmap-consent"
+                      type="checkbox"
+                      checked={consentChecked}
+                      onChange={(e) => {
+                        setConsentChecked(e.target.checked);
+                        if (e.target.checked) setConsentError(false);
+                      }}
+                      aria-invalid={consentError ? 'true' : undefined}
+                      aria-describedby={consentError ? 'brainmap-consent-error' : undefined}
+                      className={`h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600 ${consentError ? 'ring-2 ring-red-500 border-red-500' : ''}`}
+                    />
+                  </div>
+                  <div className="ml-3 text-sm">
+                    <label htmlFor="brainmap-consent" className="font-medium text-gray-900">
+                      I have removed the name of the patient from this PDF
+                    </label>
+                    {consentError && (
+                      <p id="brainmap-consent-error" className="mt-1 text-red-600">
+                        Please check this box before continuing.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
@@ -279,7 +332,7 @@ export default function BrainMapUploadWizard({
               <button
                 type="button"
                 onClick={handleNext}
-                disabled={!selectedFile}
+                disabled={!selectedFile || !consentChecked}
                 className="inline-flex items-center px-6 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 Next

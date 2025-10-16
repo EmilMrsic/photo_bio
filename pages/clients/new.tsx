@@ -7,8 +7,8 @@ import { CONDITIONS, CONDITION_DISPLAY_NAMES } from '../../lib/conditions';
 export default function NewClientPage() {
   const router = useRouter();
   const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
-  const [email, setEmail] = useState('');
+  const [lastInitial, setLastInitial] = useState('');
+  const [braincoreId, setBraincoreId] = useState('');
   const [condition, setCondition] = useState('');
   const [notes, setNotes] = useState('');
   const [pdfFile, setPdfFile] = useState<File | null>(null);
@@ -18,6 +18,8 @@ export default function NewClientPage() {
   const [showProcessing, setShowProcessing] = useState(false);
   const [processingText, setProcessingText] = useState('');
   const [dragActive, setDragActive] = useState(false);
+  const [consentChecked, setConsentChecked] = useState(false);
+  const [consentError, setConsentError] = useState(false);
 
   useEffect(() => {
     const fetchProviderInfo = async () => {
@@ -91,8 +93,20 @@ export default function NewClientPage() {
     setLoading(true);
     setError(null);
 
-    if (!providerId || !email) {
-      setError('Provider information not found or email missing. Please log in again.');
+    if (!consentChecked) {
+      setConsentError(true);
+      setLoading(false);
+      // Inline alerting by focusing the checkbox via DOM id
+      const el = document.getElementById('new-client-consent');
+      if (el) {
+        (el as HTMLElement).focus();
+        el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }
+      return;
+    }
+
+    if (!providerId) {
+      setError('Provider information not found. Please log in again.');
       setLoading(false);
       return;
     }
@@ -100,6 +114,13 @@ export default function NewClientPage() {
     // Validate that PDF is uploaded
     if (!pdfFile) {
       setError('PDF document is required to create a client.');
+      setLoading(false);
+      return;
+    }
+
+    // Validate required fields
+    if (!firstName || !lastInitial || !braincoreId) {
+      setError('First Name, Last Initial, and BrainCore ID are required.');
       setLoading(false);
       return;
     }
@@ -134,9 +155,9 @@ export default function NewClientPage() {
       // First create the client
       const newClient: Omit<Client, 'id' | 'created_at' | 'updated_at'> = {
         providers_id: providerId,
-        email,
         first_name: firstName,
-        last_name: lastName,
+        last_initial: (lastInitial || '').charAt(0).toUpperCase(),
+        braincore_id: braincoreId,
         condition: condition || undefined,
         map_pdf_url: undefined, // Will be updated after PDF upload
         notes: notes || undefined,
@@ -150,7 +171,12 @@ export default function NewClientPage() {
       if (pdfFile && createdClient.id) {
         try {
           console.log('Uploading PDF for client ID:', createdClient.id);
-          const uploadResult = await clientAPI.uploadMapsPDF(pdfFile, email, firstName, lastName);
+          const uploadResult = await clientAPI.uploadMapsPDF(
+            pdfFile,
+            braincoreId,
+            firstName,
+            (lastInitial || '').charAt(0).toUpperCase()
+          );
           console.log('PDF upload successful:', uploadResult);
 
           // Update client with PDF URL/path if upload was successful
@@ -170,6 +196,7 @@ export default function NewClientPage() {
             protocolFormData.append('file', pdfFile);  // API expects 'file' not 'pdf'
             protocolFormData.append('condition', condition);
             protocolFormData.append('clientId', createdClient.id.toString());
+            protocolFormData.append('consent', 'true');
 
             console.log('FormData prepared, calling /api/extract-protocol');
             const response = await fetch('/api/extract-protocol', {
@@ -205,7 +232,7 @@ export default function NewClientPage() {
                   protocol,
                   condition,
                   firstName,
-                  lastName
+                  (lastInitial || '').charAt(0).toUpperCase()
                 );
                 console.log('PBM protocol saved successfully to Xano');
               } catch (pbmError) {
@@ -291,35 +318,36 @@ export default function NewClientPage() {
                 />
               </div>
 
-              {/* Last Name Field */}
+              {/* Last Initial Field */}
               <div>
-                <label htmlFor="lastName" className="block text-sm font-medium text-gray-700">
-                  Last Name *
+                <label htmlFor="lastInitial" className="block text-sm font-medium text-gray-700">
+                  Last Initial *
                 </label>
                 <input
-                  id="lastName"
+                  id="lastInitial"
                   type="text"
-                  value={lastName}
-                  onChange={(e) => setLastName(e.target.value)}
+                  value={lastInitial}
+                  onChange={(e) => setLastInitial(e.target.value.slice(0, 1).toUpperCase())}
                   required
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="Doe"
+                  placeholder="D"
+                  maxLength={1}
                 />
               </div>
 
-              {/* Email Field */}
+              {/* BrainCore ID Field */}
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Email *
+                <label htmlFor="braincoreId" className="block text-sm font-medium text-gray-700">
+                  BrainCore ID *
                 </label>
                 <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
+                  id="braincoreId"
+                  type="text"
+                  value={braincoreId}
+                  onChange={(e) => setBraincoreId(e.target.value)}
                   required
                   className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                  placeholder="john.doe@example.com"
+                  placeholder="e.g., BC-12345"
                 />
               </div>
 
@@ -411,6 +439,37 @@ export default function NewClientPage() {
                   </div>
                 </div>
               </div>
+
+              {/* Consent Checkbox */}
+              <div className="sm:col-span-2">
+                <div className="mt-2 flex items-start">
+                  <div className="flex items-center h-5">
+                    <input
+                      id="new-client-consent"
+                      name="new-client-consent"
+                      type="checkbox"
+                      checked={consentChecked}
+                      onChange={(e) => {
+                        setConsentChecked(e.target.checked);
+                        if (e.target.checked) setConsentError(false);
+                      }}
+                      aria-invalid={consentError ? 'true' : undefined}
+                      aria-describedby={consentError ? 'new-client-consent-error' : undefined}
+                      className={`h-4 w-4 rounded border-gray-300 text-indigo-600 focus:ring-indigo-600 ${consentError ? 'ring-2 ring-red-500 border-red-500' : ''}`}
+                    />
+                  </div>
+                  <div className="ml-3 text-sm">
+                    <label htmlFor="new-client-consent" className="font-medium text-gray-900">
+                      I have removed the name of the patient from this PDF
+                    </label>
+                    {consentError && (
+                      <p id="new-client-consent-error" className="mt-1 text-red-600">
+                        Please check this box before submitting.
+                      </p>
+                    )}
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="flex justify-end space-x-3">
@@ -423,7 +482,7 @@ export default function NewClientPage() {
               </button>
               <button
                 type="submit"
-                disabled={loading}
+                disabled={loading || !consentChecked}
                 className="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {loading ? 'Creating Client...' : 'Create Client'}
