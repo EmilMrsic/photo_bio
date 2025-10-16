@@ -1,0 +1,77 @@
+# cloudbuild.yaml
+# Builds and deploys the Next.js app to Cloud Run with secrets from Secret Manager
+
+steps:
+  # Step 1: Build the Docker image with build arguments from secrets
+  - name: "gcr.io/cloud-builders/docker"
+    secretEnv:
+      - "OPENAI_API_KEY"
+      - "MEMBERSTACK_PUBLIC_KEY"
+      - "MEMBERSTACK_APP_ID"
+      - "XANO_API_URL"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        docker build \
+          --build-arg NEXT_PUBLIC_MEMBERSTACK_PUBLIC_KEY=$$MEMBERSTACK_PUBLIC_KEY \
+          --build-arg NEXT_PUBLIC_MEMBERSTACK_APP_ID=$$MEMBERSTACK_APP_ID \
+          --build-arg NEXT_PUBLIC_XANO_API_URL=$$XANO_API_URL \
+          -t europe-west1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/photo-bio/photo-bio:$BUILD_ID \
+          -t europe-west1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/photo-bio/photo-bio:latest \
+          .
+
+  # Step 2: Push the Docker image to Artifact Registry
+  - name: "gcr.io/cloud-builders/docker"
+    args:
+      - "push"
+      - "--all-tags"
+      - "europe-west1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/photo-bio/photo-bio"
+
+  # Step 3: Deploy to Cloud Run with runtime environment variables
+  - name: "gcr.io/cloud-builders/gcloud"
+    secretEnv: 
+      - "OPENAI_API_KEY"
+      - "MEMBERSTACK_PUBLIC_KEY"
+      - "MEMBERSTACK_APP_ID"
+      - "XANO_API_URL"
+      - "MEMBERSTACK_SECRET_KEY"
+      - "API_ACCESS_TOKEN"
+    entrypoint: "bash"
+    args:
+      - "-c"
+      - |
+        gcloud run deploy photo-bio-main \
+          --image europe-west1-docker.pkg.dev/$PROJECT_ID/cloud-run-source-deploy/photo-bio/photo-bio:$BUILD_ID \
+          --region europe-west1 \
+          --platform managed \
+          --allow-unauthenticated \
+          --memory 512Mi \
+          --cpu 1 \
+          --timeout 300 \
+          --port 8080 \
+          --set-env-vars OPENAI_API_KEY=$$OPENAI_API_KEY,NODE_ENV=production,NEXT_PUBLIC_MEMBERSTACK_PUBLIC_KEY=$$MEMBERSTACK_PUBLIC_KEY,NEXT_PUBLIC_MEMBERSTACK_APP_ID=$$MEMBERSTACK_APP_ID,NEXT_PUBLIC_XANO_API_URL=$$XANO_API_URL,MEMBERSTACK_SECRET_KEY=$$MEMBERSTACK_SECRET_KEY,API_ACCESS_TOKEN=$$API_ACCESS_TOKEN,GCP_PROJECT_ID=$PROJECT_ID
+
+# Define which secrets to make available from Secret Manager
+availableSecrets:
+  secretManager:
+    - versionName: projects/$PROJECT_ID/secrets/OPENAI_API_KEY/versions/latest
+      env: "OPENAI_API_KEY"
+    - versionName: projects/$PROJECT_ID/secrets/MEMBERSTACK_PUBLIC_KEY/versions/latest
+      env: "MEMBERSTACK_PUBLIC_KEY"
+    - versionName: projects/$PROJECT_ID/secrets/MEMBERSTACK_APP_ID/versions/latest
+      env: "MEMBERSTACK_APP_ID"
+    - versionName: projects/$PROJECT_ID/secrets/XANO_API_URL/versions/latest
+      env: "XANO_API_URL"
+    - versionName: projects/$PROJECT_ID/secrets/MEMBERSTACK_SECRET_KEY/versions/latest
+      env: "MEMBERSTACK_SECRET_KEY"
+    - versionName: projects/$PROJECT_ID/secrets/API_ACCESS_TOKEN/versions/latest
+      env: "API_ACCESS_TOKEN"
+
+# Build timeout (20 minutes)
+timeout: "1200s"
+
+# Use a more powerful build machine for faster builds
+options:
+  machineType: "N1_HIGHCPU_8"
+  logging: CLOUD_LOGGING_ONLY

@@ -1,7 +1,16 @@
 # ---- Build stage (Debian) ----
 FROM node:18-bookworm-slim AS builder
-ENV NODE_ENV=development
 WORKDIR /app
+
+# Accept build arguments for Next.js public environment variables
+ARG NEXT_PUBLIC_MEMBERSTACK_PUBLIC_KEY
+ARG NEXT_PUBLIC_MEMBERSTACK_APP_ID
+ARG NEXT_PUBLIC_XANO_API_URL
+
+# Set them as environment variables so Next.js can embed them at build time
+ENV NEXT_PUBLIC_MEMBERSTACK_PUBLIC_KEY=$NEXT_PUBLIC_MEMBERSTACK_PUBLIC_KEY
+ENV NEXT_PUBLIC_MEMBERSTACK_APP_ID=$NEXT_PUBLIC_MEMBERSTACK_APP_ID
+ENV NEXT_PUBLIC_XANO_API_URL=$NEXT_PUBLIC_XANO_API_URL
 
 # System deps for native modules during build
 RUN apt-get update && apt-get install -y --no-install-recommends \
