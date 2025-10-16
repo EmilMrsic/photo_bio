@@ -600,7 +600,7 @@ export default function Products() {
                 <div className="aspect-[4/3] w-full overflow-hidden rounded-xl bg-gray-100 shadow-md mb-6">
                   <img
                     src="/main-images/ai-brain.png"
-                    alt="AI system creating protocol"
+                    alt="System generating protocol from brain map"
                     className="h-full w-full object-cover"
                   />
                 </div>
@@ -609,10 +609,10 @@ export default function Products() {
                     2
                   </div>
                   <h3 className="text-xl font-bold text-gray-900 mb-3">
-                    Let our AI system create the protocol
+                    Our system generates your protocol
                   </h3>
                   <p className="text-base text-gray-600">
-                    AI-assisted software converts the brain map into precise light-stimulation protocols.
+                    Protocols generated using advanced metrics combined with functional presentation.
                   </p>
                 </div>
               </div>
@@ -731,10 +731,10 @@ export default function Products() {
                   </div>
                   <div>
                     <h3 className="text-base font-semibold text-gray-900 mb-2">
-                      Neurogenesis & Plasticity
+                      Mitochondrial Activation
                     </h3>
                     <p className="text-sm text-gray-600">
-                      Promotes neurogenesis and synaptic plasticity for memory and learning
+                      Mitochondrial activation enhances cellular energy production, supporting improved brain function, physical performance, and overall vitality.
                     </p>
                   </div>
                 </div>
