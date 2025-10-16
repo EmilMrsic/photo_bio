@@ -1,0 +1,12 @@
+.next/
+node_modules
+node_modules/
+
+# Local blog images (for testing)
+public/blog-images/
+
+# Environment files
+.env
+.env.*
+.env.local
+.env.*.local

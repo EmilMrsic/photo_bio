@@ -1,0 +1,57 @@
+{
+  "name": "photo_bio",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "dev:main": "PORT=3000 next dev",
+    "dev:claude": "PORT=4000 next dev",
+    "dev:codex": "PORT=5000 next dev",
+    "dev:warp": "PORT=6001 next dev",
+    "build": "next build",
+    "start": "next start -p 8080",
+    "lint": "next lint",
+    "test": "echo \"No tests yet\""
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/EmilMrsic/photo_bio.git"
+  },
+  "keywords": [],
+  "author": "Emil Mrsic",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/EmilMrsic/photo_bio/issues"
+  },
+  "homepage": "https://github.com/EmilMrsic/photo_bio#readme",
+  "description": "Neuralight Pro frontend for protocol mapping, shopping, and client management",
+  "dependencies": {
+    "@google-cloud/storage": "^7.17.2",
+    "@headlessui/react": "^2.2.4",
+    "@heroicons/react": "^2.2.0",
+    "@memberstack/dom": "^2.0.1",
+    "@tailwindcss/aspect-ratio": "^0.4.2",
+    "@tailwindcss/forms": "^0.5.10",
+    "@tailwindcss/typography": "^0.5.16",
+    "@types/formidable": "^3.4.5",
+    "formidable": "^3.5.4",
+    "next": "^15.4.2",
+    "openai": "^5.10.2",
+    "pdf-parse": "^1.1.1",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0",
+    "react-markdown": "^10.1.0"
+  },
+  "devDependencies": {
+    "@types/react": "19.1.8",
+    "autoprefixer": "^10.4.14",
+    "eslint": "latest",
+    "eslint-config-next": "latest",
+    "postcss": "^8.4.24",
+    "tailwindcss": "^3.4.1",
+    "typescript": "5.8.3"
+  },
+  "engines": {
+    "node": ">=18.18.0"
+  }
+}
