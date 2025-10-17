@@ -1,0 +1,10 @@
+components/BrainMapUploadWizard.tsx
+components/Layout.tsx
+lib/xano.ts
+pages/api/extract-protocol.ts
+pages/clients/[id].tsx
+pages/clients/[id]/edit.tsx
+pages/clients/index.tsx
+pages/clients/new.tsx
+pages/index.tsx
+pages/uploadBrainMap.tsx

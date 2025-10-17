@@ -44,6 +44,17 @@ export default async function handler(
       ? fields.condition[0]
       : fields.condition;
 
+    // Require explicit consent
+    const consentField = Array.isArray(fields.consent) ? fields.consent[0] : fields.consent;
+    const consent = typeof consentField === 'string' ? consentField.toLowerCase() : consentField;
+    if (!consent || (consent !== 'true' && consent !== 'on' && consent !== '1')) {
+      return res.status(400).json({
+        ok: false,
+        error_code: 'CONSENT_REQUIRED',
+        message: 'Consent is required: I have removed the name of the patient from this PDF.',
+      });
+    }
+
     if (!file) {
       return res.status(400).json({
         ok: false,

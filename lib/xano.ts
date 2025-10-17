@@ -41,9 +41,11 @@ const useMockData = !XANO_API_BASE;
 export interface Client {
   id?: number;
   providers_id: number;  // Changed to match Xano (integer, not string)
-  email: string;  // Client email for document linking
+  email?: string;  // Deprecated in UI; may exist on legacy records
   first_name: string;
-  last_name: string;
+  last_name?: string; // Deprecated in UI; use last_initial instead
+  last_initial?: string; // Single character last initial
+  braincore_id?: string; // Unique per provider; used for document linking
   condition?: string;
   intake_type?: string;
   map_pdf_url?: string;
@@ -242,9 +244,9 @@ export const clientAPI = {
       const filteredClients = Array.isArray(data) 
         ? data.filter(client => 
             client.providers_id === providerId && 
-            client.first_name && 
-            client.last_name &&
-            client.email
+            client.first_name &&
+            // Accept either last_initial or legacy last_name
+            (client.last_initial || client.last_name)
           )
         : [];
       
@@ -393,19 +395,19 @@ export const clientAPI = {
   // Upload PDF to Xano MAPS_PDF endpoint with client information
   async uploadMapsPDF(
     file: File,
-    clientEmail: string,
+    braincoreId: string,
     firstName: string,
-    lastName: string
+    lastInitial: string
   ): Promise<{ url: string; path?: string }> {
     try {
       const formData = new FormData();
       // New client documents system parameters
       formData.append('content', file);
-      formData.append('client_email', clientEmail);
+      formData.append('braincore_id', braincoreId);
       formData.append('first_name', firstName);
-      formData.append('last_name', lastName);
+      formData.append('last_initial', lastInitial);
       
-      console.log('Uploading PDF for client:', { clientEmail, firstName, lastName });
+      console.log('Uploading PDF for client:', { braincoreId, firstName, lastInitial });
       
       // Don't set Content-Type header when sending FormData
       // Browser will set it automatically with boundary
@@ -917,7 +919,7 @@ export const pbmProtocolAPI = {
     protocolId: number,
     condition: string,
     clientFirstName: string,
-    clientLastName: string
+    clientLastInitial?: string
   ): Promise<PBMProtocol> {
     try {
       // Extract phase data - assuming phases are ordered: Initial, Intermediate, Advanced
@@ -925,15 +927,21 @@ export const pbmProtocolAPI = {
       const intermediate = phases[1] || {};
       const advanced = phases[2] || {};
 
-      // Generate label: CONDITION-DATE-INITIALS (e.g., ANXIETY-100725-JD)
-      const now = new Date();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const year = String(now.getFullYear()).slice(-2);
-      const dateStr = `${month}${day}${year}`;
-
-      const initials = `${clientFirstName.charAt(0)}${clientLastName.charAt(0)}`.toUpperCase();
-      const label = `${condition.toUpperCase()}-${dateStr}-${initials}`;
+      // Generate label as sequential per-client: "Map N"
+      // Count existing protocols for this client and add 1
+      const headers = await getHeaders();
+      const allResponse = await fetch(`${XANO_API_BASE}/pbm_protocols`, {
+        method: 'GET',
+        headers,
+      });
+      let existingCount = 0;
+      if (allResponse.ok) {
+        const allProtocols = await allResponse.json();
+        if (Array.isArray(allProtocols)) {
+          existingCount = allProtocols.filter((p: PBMProtocol) => p.clients_id === clientId).length;
+        }
+      }
+      const label = `Map ${existingCount + 1}`;
 
       const protocolData: Omit<PBMProtocol, 'id' | 'created_at'> = {
         hz: initial.frequency_hz || 0,
@@ -947,7 +955,6 @@ export const pbmProtocolAPI = {
         clients_id: clientId,
       };
 
-      const headers = await getHeaders();
       const response = await fetch(`${XANO_API_BASE}/pbm_protocols`, {
         method: 'POST',
         headers,
@@ -1037,23 +1044,14 @@ export const pbmProtocolAPI = {
     protocolId: number,
     condition: string,
     clientFirstName: string,
-    clientLastName: string
+    clientLastInitial?: string
   ): Promise<PBMProtocol> {
     try {
       const initial = phases[0] || {};
       const intermediate = phases[1] || {};
       const advanced = phases[2] || {};
 
-      // Generate label: CONDITION-DATE-INITIALS
-      const now = new Date();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const year = String(now.getFullYear()).slice(-2);
-      const dateStr = `${month}${day}${year}`;
-
-      const initials = `${clientFirstName.charAt(0)}${clientLastName.charAt(0)}`.toUpperCase();
-      const label = `${condition.toUpperCase()}-${dateStr}-${initials}`;
-
+      // Preserve existing label: do not regenerate here
       const updates = {
         hz: initial.frequency_hz || 0,
         stage_1_time: initial.duration_min || 0,
@@ -1062,7 +1060,6 @@ export const pbmProtocolAPI = {
         stage_2_intensity: intermediate.intensity_percent || 0,
         stage_3_time: advanced.duration_min || 0,
         stage_3_intensity: advanced.intensity_percent || 0,
-        label,
       };
 
       const headers = await getHeaders();
@@ -1100,6 +1097,27 @@ export const pbmProtocolAPI = {
       return true;
     } catch (error) {
       console.error('Error deleting PBM protocol:', error);
+      throw error;
+    }
+  },
+
+  // Update only the label of a protocol (for admin/migration use)
+  async updateProtocolLabel(id: number, label: string): Promise<PBMProtocol> {
+    try {
+      const headers = await getHeaders();
+      const response = await fetch(`${XANO_API_BASE}/pbm_protocols/${id}`, {
+        method: 'PATCH',
+        headers,
+        body: JSON.stringify({ label }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update PBM protocol label');
+      }
+
+      return await response.json();
+    } catch (error) {
+      console.error('Error updating PBM protocol label:', error);
       throw error;
     }
   },

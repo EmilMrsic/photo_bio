@@ -12,9 +12,8 @@ export default function EditClientPage() {
   const [error, setError] = useState<string | null>(null);
   const [formData, setFormData] = useState({
     first_name: '',
-    last_name: '',
-    email: '',
-    condition: '',
+    last_initial: '',
+    braincore_id: '',
   });
 
   // Helper function to extract client ID from slug
@@ -44,9 +43,8 @@ export default function EditClientPage() {
         setClient(clientData);
         setFormData({
           first_name: clientData.first_name || '',
-          last_name: clientData.last_name || '',
-          email: clientData.email || '',
-          condition: clientData.condition || '',
+          last_initial: (clientData.last_initial || clientData.last_name?.charAt(0) || '').toUpperCase(),
+          braincore_id: clientData.braincore_id || '',
         });
       } catch (err) {
         console.error('Error fetching client:', err);
@@ -63,7 +61,7 @@ export default function EditClientPage() {
     const { name, value } = e.target;
     setFormData(prev => ({
       ...prev,
-      [name]: value
+      [name]: name === 'last_initial' ? value.slice(0, 1).toUpperCase() : value
     }));
   };
 
@@ -78,9 +76,8 @@ export default function EditClientPage() {
       
       await clientAPI.updateClient(client.id.toString(), {
         first_name: formData.first_name,
-        last_name: formData.last_name,
-        email: formData.email,
-        condition: formData.condition,
+        last_initial: (formData.last_initial || '').charAt(0).toUpperCase(),
+        braincore_id: formData.braincore_id || undefined,
       });
       
       // Redirect back to client detail page
@@ -146,64 +143,37 @@ export default function EditClientPage() {
                 </div>
 
                 <div>
-                  <label htmlFor="last_name" className="block text-sm font-medium text-gray-700">
-                    Last Name
+                  <label htmlFor="last_initial" className="block text-sm font-medium text-gray-700">
+                    Last Initial
                   </label>
                   <input
                     type="text"
-                    name="last_name"
-                    id="last_name"
-                    value={formData.last_name}
+                    name="last_initial"
+                    id="last_initial"
+                    value={formData.last_initial}
                     onChange={handleInputChange}
                     required
                     className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
+                    maxLength={1}
                   />
                 </div>
               </div>
 
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700">
-                  Email
+                <label htmlFor="braincore_id" className="block text-sm font-medium text-gray-700">
+                  BrainCore ID
                 </label>
                 <input
-                  type="email"
-                  name="email"
-                  id="email"
-                  value={formData.email}
+                  type="text"
+                  name="braincore_id"
+                  id="braincore_id"
+                  value={formData.braincore_id}
                   onChange={handleInputChange}
-                  required
                   className="mt-1 focus:ring-indigo-500 focus:border-indigo-500 block w-full shadow-sm sm:text-sm border-gray-300 rounded-md"
                 />
               </div>
 
-              <div>
-                <label htmlFor="condition" className="block text-sm font-medium text-gray-700">
-                  Condition
-                </label>
-                <select
-                  name="condition"
-                  id="condition"
-                  value={formData.condition}
-                  onChange={handleInputChange}
-                  className="mt-1 block w-full py-2 px-3 border border-gray-300 bg-white rounded-md shadow-sm focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
-                >
-                  <option value="">Select condition</option>
-                  <option value="Memory">Memory</option>
-                  <option value="Focus">Focus</option>
-                  <option value="Anxiety">Anxiety</option>
-                  <option value="Depression">Depression</option>
-                  <option value="Sleep">Sleep</option>
-                  <option value="Head injury">Head injury</option>
-                  <option value="Peak performance">Peak performance</option>
-                  <option value="OCD">OCD</option>
-                  <option value="Chronic pain">Chronic pain</option>
-                  <option value="Spectrum">Spectrum</option>
-                  <option value="Headaches">Headaches</option>
-                  <option value="Stroke recovery">Stroke recovery</option>
-                  <option value="Chronic fatigue">Chronic fatigue</option>
-                  <option value="Addictions">Addictions</option>
-                </select>
-              </div>
+
 
               <div className="flex justify-end space-x-3">
                 <button

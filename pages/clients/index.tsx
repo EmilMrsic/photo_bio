@@ -295,8 +295,7 @@ export default function ClientsPage() {
               <thead className="bg-gray-50">
                 <tr>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Email</th>
-                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Condition</th>
+                  <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">BrainCore ID</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Last Protocol</th>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                 </tr>
@@ -304,13 +303,8 @@ export default function ClientsPage() {
               <tbody className="bg-white divide-y divide-gray-200">
                 {clients.map(client => {
                   const protocol = client.id ? clientProtocols[client.id] : null;
-                  const clientSlug = `${client.first_name}-${client.last_name}-${client.id}`.toLowerCase().replace(/\s+/g, '-');
-                  // Extract condition from protocol label (e.g., "ANXIETY-100725-JD" -> "Anxiety")
-                  const protocolCondition = protocol?.label?.split('-')[0];
-                  const displayCondition = protocolCondition
-                    ? protocolCondition.charAt(0) + protocolCondition.slice(1).toLowerCase()
-                    : client.condition || 'Not specified';
-
+                  const displayLastInitial = (client.last_initial || client.last_name?.charAt(0) || '').toUpperCase();
+                  const clientSlug = `${client.first_name}-${displayLastInitial}-${client.id}`.toLowerCase().replace(/\s+/g, '-');
                   const isHighlighted = highlightedClientId === client.id;
                   const isDimmed = highlightedClientId !== null && !isHighlighted;
 
@@ -328,11 +322,10 @@ export default function ClientsPage() {
                     >
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
                         <Link href={`/clients/${clientSlug}`} className="text-indigo-600 hover:text-indigo-900">
-                          {client.first_name} {client.last_name}
+                          {client.first_name} {displayLastInitial && `${displayLastInitial}.`}
                         </Link>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.email}</td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{displayCondition}</td>
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{client.braincore_id || '—'}</td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                         {protocol ? (
                           <div>

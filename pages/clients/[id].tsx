@@ -63,8 +63,9 @@ export default function ClientDetailPage() {
         setClient(clientData);
 
         // Update URL to use proper slug format if currently using numeric ID
-        if (clientData && id !== `${clientData.first_name}-${clientData.last_name}-${clientData.id}`.toLowerCase().replace(/\s+/g, '-')) {
-          const slug = `${clientData.first_name}-${clientData.last_name}-${clientData.id}`.toLowerCase().replace(/\s+/g, '-');
+        const displayLastInitial = (clientData.last_initial || clientData.last_name?.charAt(0) || '').toUpperCase();
+        if (clientData && id !== `${clientData.first_name}-${displayLastInitial}-${clientData.id}`.toLowerCase().replace(/\s+/g, '-')) {
+          const slug = `${clientData.first_name}-${displayLastInitial}-${clientData.id}`.toLowerCase().replace(/\s+/g, '-');
           router.replace(`/clients/${slug}`, undefined, { shallow: true });
         }
         
@@ -106,11 +107,14 @@ export default function ClientDetailPage() {
 
   const getFullName = () => {
     if (!client) return '';
-    return `${client.first_name || ''} ${client.last_name || ''}`.trim() || 'No name provided';
+    const initial = (client.last_initial || client.last_name?.charAt(0) || '').toUpperCase();
+    const name = `${client.first_name || ''} ${initial ? `${initial}.` : ''}`.trim();
+    return name || 'No name provided';
   };
 
   const getClientSlug = (client: Client) => {
-    return `${client.first_name}-${client.last_name}-${client.id}`.toLowerCase().replace(/\s+/g, '-');
+    const initial = (client.last_initial || client.last_name?.charAt(0) || '').toUpperCase();
+    return `${client.first_name}-${initial}-${client.id}`.toLowerCase().replace(/\s+/g, '-');
   };
 
   const getFullPdfUrl = (url: string) => {
@@ -150,9 +154,9 @@ export default function ClientDetailPage() {
       // Upload the PDF using the MAPS_PDF endpoint
       const uploadResult = await clientAPI.uploadMapsPDF(
         file,
-        client.email,
+        client.braincore_id || '',
         client.first_name,
-        client.last_name
+        (client.last_initial || client.last_name?.charAt(0) || '').toUpperCase()
       );
 
       // Refresh the documents list
@@ -250,7 +254,7 @@ export default function ClientDetailPage() {
   const handleConditionSelected = async (condition: string, docId?: number, docUrl?: string) => {
     console.log('═══════════════════════════════════════════════');
     console.log('🎯 USER SELECTED CONDITION:', condition);
-    console.log('   Client:', client?.first_name, client?.last_name);
+    console.log('   Client:', client?.first_name, client?.last_initial || client?.last_name?.charAt(0));
     console.log('═══════════════════════════════════════════════');
 
     setShowConditionSelector(false);
@@ -295,6 +299,7 @@ export default function ClientDetailPage() {
       const formData = new FormData();
       formData.append('file', file);
       formData.append('condition', condition); // Pass the user-selected condition
+      formData.append('consent', 'true');
 
       console.log('🚀 Sending to API with condition:', condition);
 
@@ -341,7 +346,7 @@ export default function ClientDetailPage() {
             protocol,
             condition,
             client.first_name,
-            client.last_name
+            (client.last_initial || client.last_name?.charAt(0) || '').toUpperCase()
           );
           console.log('PBM protocol saved successfully');
 
@@ -358,14 +363,19 @@ export default function ClientDetailPage() {
         setClient(updatedClient);
       }
 
-      // Generate protocol label: CONDITION-MMDDYY-IN
-      const now = new Date();
-      const month = String(now.getMonth() + 1).padStart(2, '0');
-      const day = String(now.getDate()).padStart(2, '0');
-      const year = String(now.getFullYear()).slice(-2);
-      const dateStr = `${month}${day}${year}`;
-      const initials = `${client.first_name.charAt(0)}${client.last_name.charAt(0)}`.toUpperCase();
-      const label = `${condition}-${dateStr}-${initials}`;
+      // Use the label saved in pbm_protocols (Map N). If a new protocol was saved,
+      // refresh and use the newest protocol's label for the modal display.
+      let label = '';
+      if (client?.id) {
+        try {
+          const protocols = await pbmProtocolAPI.getAllProtocolsByClientId(client.id);
+          if (protocols.length > 0) {
+            label = protocols[0].label;
+          }
+        } catch (e) {
+          label = '';
+        }
+      }
 
       // Ensure minimum 10 second display time
       const elapsedTime = Date.now() - startTime;
@@ -378,7 +388,7 @@ export default function ClientDetailPage() {
       // Show the professional modal with phases
       setModalProtocolNumber(protocol);
       setModalProtocolPhases(phases);
-      setModalProtocolLabel(label);
+      setModalProtocolLabel(label || '');
       setShowProtocolModal(true);
     } catch (error) {
       console.error('Error generating protocol:', error);
@@ -448,12 +458,8 @@ export default function ClientDetailPage() {
                 <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{getFullName()}</dd>
               </div>
               <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">Email</dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{client.email}</dd>
-              </div>
-              <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
-                <dt className="text-sm font-medium text-gray-500">Initial Condition</dt>
-                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{client.condition || 'Not specified'}</dd>
+                <dt className="text-sm font-medium text-gray-500">BrainCore ID</dt>
+                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{client.braincore_id || '—'}</dd>
               </div>
               <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                 <dt className="text-sm font-medium text-gray-500">Date Added</dt>
