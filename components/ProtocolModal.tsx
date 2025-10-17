@@ -108,7 +108,7 @@ export default function ProtocolModal({ isOpen, onClose, protocolNumber, clientN
                   <div className="relative rounded-lg overflow-hidden shadow-xl border-2 border-gray-200">
                     <div className="relative w-full" style={{ paddingTop: '56.25%' }}>
                       <iframe
-                        src="https://customer-f57etvnofv3kxoyh.cloudflarestream.com/aafcea91da21ba99d8498a3d4db1baee/iframe?poster=https%3A%2F%2Fcustomer-f57etvnofv3kxoyh.cloudflarestream.com%2Faafcea91da21ba99d8498a3d4db1baee%2Fthumbnails%2Fthumbnail.jpg%3Ftime%3D%26height%3D600"
+                        src="https://customer-f57etvnofv3kxoyh.cloudflarestream.com/e0f64b116611f5d2c13280421cf13774/iframe?poster=https%3A%2F%2Fcustomer-f57etvnofv3kxoyh.cloudflarestream.com%2Fe0f64b116611f5d2c13280421cf13774%2Fthumbnails%2Fthumbnail.jpg%3Ftime%3D%26height%3D600"
                         loading="lazy"
                         style={{ border: 'none', position: 'absolute', top: 0, left: 0, height: '100%', width: '100%' }}
                         allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture;"
@@ -191,8 +191,7 @@ export default function ProtocolModal({ isOpen, onClose, protocolNumber, clientN
                 {/* Footer */}
                 <div className="mt-8 bg-gray-50 rounded-lg p-4">
                   <p className="text-xs text-center text-gray-600">
-                    This protocol recommendation has been generated using advanced AI pattern recognition
-                    based on comprehensive neurofeedback assessment data.
+                    This protocol recommendation was generated using advanced metrics and pattern analysis derived from comprehensive neurofeedback assessment data.
                   </p>
                 </div>
                 
