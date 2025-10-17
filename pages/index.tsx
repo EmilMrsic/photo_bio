@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { Disclosure, DisclosureButton, DisclosurePanel, Dialog, DialogPanel, DialogTitle } from '@headlessui/react'
 import { Bars3Icon, XMarkIcon, CheckIcon } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
+import PurchaseFlow from '../components/PurchaseFlow'
 import { useMemberstack } from '../hooks/useMemberstack'
 import { useRouter } from 'next/router'
 
@@ -92,6 +93,19 @@ export default function Products() {
   })
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [submitStatus, setSubmitStatus] = useState<'idle' | 'success' | 'error'>('idle')
+  const [showV1Flow, setShowV1Flow] = useState(false)
+  const [showV2Flow, setShowV2Flow] = useState(false)
+
+  const formatCurrency = (n: number) => n.toLocaleString('en-US', { style: 'currency', currency: 'USD' })
+  const priceV1 = 1795
+  const priceV2 = 3395
+  const priceV1Disc = priceV1 * 0.9
+  const priceV2Disc = priceV2 * 0.9
+
+  // Determine which navigation items to show based on auth state
+  const isAuthenticated = !!member
+  const navItems = isAuthenticated ? navigation.filter((i) => i.name !== 'Pricing') : navigation
+  const showItems = memberLoading ? navigation : navItems
 
   const handleLogout = async () => {
     await logout()
@@ -200,7 +214,7 @@ export default function Products() {
                   </Link>
                 </div>
                 <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-                  {navigation.map((item) => (
+                  {showItems.map((item) => (
                     <a
                       key={item.name}
                       href={item.href}
@@ -280,7 +294,7 @@ export default function Products() {
           </div>
           <DisclosurePanel className="sm:hidden">
             <div className="space-y-1 pb-3 pt-2">
-              {navigation.map((item) => (
+              {showItems.map((item) => (
                 <DisclosureButton
                   key={item.name}
                   as="a"
@@ -762,10 +776,25 @@ export default function Products() {
         {/* Products Grid */}
         <div id="pricing" className="bg-gray-50 py-16 sm:py-24">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
-            <div className="mx-auto max-w-2xl text-center mb-16">
+            {/* Removed standalone flow above pricing per new design */}
+            <div className="mx-auto max-w-2xl text-center mb-4">
               <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
                 Choose the TPBM Solution That Fits Your Practice
               </h2>
+            </div>
+            <div className="flex justify-end mb-12">
+              <button
+                onClick={() => {
+                  if (typeof window !== 'undefined') {
+                    localStorage.removeItem('purchaseFlowState')
+                    setShowV1Flow(false)
+                    setShowV2Flow(false)
+                  }
+                }}
+                className="text-xs text-gray-500 hover:text-gray-700 underline"
+              >
+                Reset purchase flow
+              </button>
             </div>
 
             {/* Neuronics Partnership Section */}
@@ -781,71 +810,129 @@ export default function Products() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-              {products.map((product) => (
-                <div
-                  key={product.id}
-                  className="flex flex-col bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 overflow-hidden hover:shadow-lg transition-shadow"
-                >
-                  {/* Product Image */}
-                  <div className="aspect-[4/3] w-full overflow-hidden bg-gray-100 flex-shrink-0">
-                    <img
-                      src={product.imagePlaceholder}
-                      alt={product.productName}
-                      className="h-full w-full object-cover object-center"
-                    />
-                  </div>
-
-                  {/* Product Content - Vertical Flex Layout */}
-                  <div className="flex flex-col p-6 flex-grow">
-                    {/* Title and Product Name - Fixed Height */}
-                    <div>
-                      <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wide">
-                        {product.title}
-                      </p>
-                      <h3 className="mt-2 text-2xl font-bold text-gray-900">
-                        {product.productName}
-                      </h3>
-                      <div className="mt-3 inline-block rounded-full bg-indigo-100 px-4 py-2">
-                        <p className="text-sm font-bold text-indigo-900">
-                          {product.tagline}
-                        </p>
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+              {/* Left column: Helmet cards stacked */}
+              <div className="space-y-8 lg:col-span-2">
+                {/* Helmet V1 */}
+                <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 overflow-hidden">
+                  <div className="grid grid-cols-1 sm:grid-cols-5">
+                    <div className="sm:col-span-3 p-6 flex flex-col items-center">
+                      <div className="w-full aspect-square overflow-hidden rounded-xl">
+                        <img src="/main-images/side view of helmet.jpg" alt="Neuronics Light Package" className="h-full w-full object-cover" />
+                      </div>
+                      <div className="mt-4 text-center">
+                        <div className="text-sm text-gray-400 line-through">{formatCurrency(priceV1)} − 10%</div>
+                        <div className="text-xl font-bold text-gray-900">{formatCurrency(priceV1Disc)}</div>
+                      </div>
+                      <button
+                        onClick={() => {
+                          setShowV1Flow(true)
+                          setTimeout(() => {
+                            const el = document.getElementById('flow-v1')
+                            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                          }, 0)
+                        }}
+                        className="mt-5 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
+                      >
+                        Buy Helmet
+                      </button>
+                    </div>
+                    <div className="sm:col-span-2 p-6 flex flex-col">
+                      <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wide">Neuronics Light Package</p>
+                      <h3 className="mt-2 text-2xl font-bold text-gray-900">Affordable. Portable. Powerful.</h3>
+                      <p className="mt-1 text-sm text-gray-600">At-Home tPBM System</p>
+                      <ul className="mt-4 space-y-2">
+                        <li className="flex items-start"><CheckIcon className="h-5 w-5 text-indigo-600 mt-0.5" aria-hidden="true" /><span className="ml-3 text-sm text-gray-700">Reliable, full-coverage near-infrared stimulation</span></li>
+                        <li className="flex items-start"><CheckIcon className="h-5 w-5 text-indigo-600 mt-0.5" aria-hidden="true" /><span className="ml-3 text-sm text-gray-700">Unlimited client usability</span></li>
+                        <li className="flex items-start"><CheckIcon className="h-5 w-5 text-indigo-600 mt-0.5" aria-hidden="true" /><span className="ml-3 text-sm text-gray-700">Direct drop-shipping to your office or patient’s home</span></li>
+                        <li className="flex items-start"><CheckIcon className="h-5 w-5 text-indigo-600 mt-0.5" aria-hidden="true" /><span className="ml-3 text-sm text-gray-700">Designed for everyday use and simple setup</span></li>
+                        <li className="flex items-start"><CheckIcon className="h-5 w-5 text-indigo-600 mt-0.5" aria-hidden="true" /><span className="ml-3 text-sm text-gray-700">Ideal for providers offering patients an affordable at-home training option</span></li>
+                        <li className="flex items-start"><CheckIcon className="h-5 w-5 text-indigo-600 mt-0.5" aria-hidden="true" /><span className="ml-3 text-sm text-gray-700">Supports focus, emotional balance, and stress resilience</span></li>
+                      </ul>
+                      <div className="mt-4 rounded-lg bg-gray-50 p-4">
+                        <p className="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-2">Best Fit</p>
+                        <p className="text-sm text-gray-600">Built for BrainCore providers who want to extend care beyond the office. The Light Package delivers consistent, full-coverage stimulation in a compact form—ideal for patients continuing tPBM sessions at home under provider guidance.</p>
                       </div>
                     </div>
-
-                    {/* Features List - Stretchy Middle */}
-                    <ul className="mt-4 space-y-2 flex-grow">
-                      {product.features.map((feature, index) => (
-                        <li key={index} className="flex items-start">
-                          <CheckIcon className="h-5 w-5 text-indigo-600 shrink-0 mt-0.5" aria-hidden="true" />
-                          <span className="ml-3 text-sm text-gray-700">{feature}</span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    {/* Best Fit - Fixed Slot */}
-                    <div className="mt-4 rounded-lg bg-gray-50 p-4">
-                      <p className="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-2">
-                        Best Fit
-                      </p>
-                      <p className="text-sm text-gray-600">
-                        {product.bestFit}
-                      </p>
+                  </div>
+                  {showV1Flow && (
+                    <div id="flow-v1" className="p-6 border-t border-gray-100">
+                      <PurchaseFlow variant="helmet-v1" defaultOpen id="flow-v1" />
+                      <div className="mt-6">
+                        <PurchaseFlow variant="subscription" />
+                      </div>
                     </div>
+                  )}
+                </div>
 
-                    {/* CTA - Bottom */}
-                    <div className="mt-4">
-                      <a
-                        href={product.checkoutUrl}
-                        className="block w-full rounded-md bg-indigo-600 px-3.5 py-2.5 text-center text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 transition-colors"
+                {/* Helmet V2 */}
+                <div className="bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 overflow-hidden">
+                  <div className="grid grid-cols-1 sm:grid-cols-5">
+                    <div className="sm:col-span-3 p-6 flex flex-col items-center">
+                      <div className="w-full aspect-square overflow-hidden rounded-xl">
+                        <img src="/main-images/Neuradiant Helmet.png" alt="Neuroradiant 1070 photobiomodulation helmet" className="h-full w-full object-cover" />
+                      </div>
+                      <div className="mt-4 text-center">
+                        <div className="text-sm text-gray-400 line-through">{formatCurrency(priceV2)} − 10%</div>
+                        <div className="text-xl font-bold text-gray-900">{formatCurrency(priceV2Disc)}</div>
+                      </div>
+                      <button
+                        aria-label="Buy Neuroradiant 1070 Helmet"
+                        onClick={() => {
+                          setShowV2Flow(true)
+                          setTimeout(() => {
+                            const el = document.getElementById('flow-v2')
+                            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                          }, 0)
+                        }}
+                        className="mt-5 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
                       >
-                        {product.cta}
-                      </a>
+                        Buy Helmet
+                      </button>
+                    </div>
+                    <div className="sm:col-span-2 p-6 flex flex-col">
+                      <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wide">Neuronics Neuroradiant 1070 Package</p>
+                      <h3 className="mt-2 text-2xl font-bold text-gray-900">Clinical-Grade Precision. Peak Performance Results.</h3>
+                      <p className="mt-1 text-sm text-gray-600">Advanced Clinical-Grade System</p>
+                      <ul className="mt-4 space-y-2">
+                        <li className="flex items-start"><CheckIcon className="h-5 w-5 text-indigo-600 mt-0.5" aria-hidden="true" /><span className="ml-3 text-sm text-gray-700">Research-grade tPBM technology for in-office use</span></li>
+                        <li className="flex items-start"><CheckIcon className="h-5 w-5 text-indigo-600 mt-0.5" aria-hidden="true" /><span className="ml-3 text-sm text-gray-700">Targeted 1070 nm near-infrared stimulation reaching deeper brain structures</span></li>
+                        <li className="flex items-start"><CheckIcon className="h-5 w-5 text-indigo-600 mt-0.5" aria-hidden="true" /><span className="ml-3 text-sm text-gray-700">Enhanced cerebral blood flow and mitochondrial activation</span></li>
+                        <li className="flex items-start"><CheckIcon className="h-5 w-5 text-indigo-600 mt-0.5" aria-hidden="true" /><span className="ml-3 text-sm text-gray-700">Optimized for clinical and high-performance applications</span></li>
+                        <li className="flex items-start"><CheckIcon className="h-5 w-5 text-indigo-600 mt-0.5" aria-hidden="true" /><span className="ml-3 text-sm text-gray-700">Engineered for reliability, repeatability, and precision control</span></li>
+                      </ul>
+                      <div className="mt-4 rounded-lg bg-gray-50 p-4">
+                        <p className="text-xs font-semibold text-gray-900 uppercase tracking-wide mb-2">Best Fit</p>
+                        <p className="text-sm text-gray-600">Designed for clinical environments that demand the highest level of precision. The Neuroradiant 1070 enables targeted, data-driven stimulation to support brain recovery, performance optimization, and advanced neurofeedback integration.</p>
+                      </div>
                     </div>
                   </div>
+                  {showV2Flow && (
+                    <div id="flow-v2" className="p-6 border-t border-gray-100">
+                      <PurchaseFlow variant="helmet-v2" defaultOpen id="flow-v2" />
+                      <div className="mt-6">
+                        <PurchaseFlow variant="subscription" />
+                      </div>
+                    </div>
+                  )}
                 </div>
-              ))}
+              </div>
+
+              {/* Right column: Subscription */}
+              <div className="lg:col-span-1">
+                <div className="lg:sticky lg:top-24 self-start bg-white rounded-2xl shadow-sm ring-1 ring-gray-200 overflow-hidden flex flex-col">
+                  <img src="/main-images/tpbm protocol setting on ios app.webp" alt="Subscription" className="h-40 w-full object-cover" />
+                  <div className="p-5 flex flex-col">
+                    <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wide">QEEG-Driven Protocol Subscription Package</p>
+                    <h3 className="mt-2 text-2xl font-bold text-gray-900">Activate Your Plan</h3>
+                    <p className="mt-3 text-sm text-gray-600">Annual subscription for unlimited QEEG uploads to generate fully personalized tPBM protocols. Unlimited clients and continuous protocol updates.</p>
+                    <div className="mt-4" />
+                    <a href="https://buy.stripe.com/aFabJ13rU10tgL24nwe3e00" className="inline-flex justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Activate Subscription</a>
+                  </div>
+                </div>
+              </div>
             </div>
+
           </div>
         </div>
 
@@ -922,6 +1009,9 @@ export default function Products() {
                 <thead className="bg-indigo-600">
                   <tr>
                     <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-white">
+                      
+                    </th>
+                    <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-white">
                       Package
                     </th>
                     <th scope="col" className="px-6 py-4 text-left text-sm font-semibold text-white">
@@ -937,73 +1027,58 @@ export default function Products() {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   <tr className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                      Neuronics Light Package
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">
-                      Entry-level tPBM system offering reliable, full-coverage stimulation at an accessible price.
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">
-                      <div className="space-y-1">
-                        <div className="flex items-center">
-                          <CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" />
-                          <span>1 year of unlimited AI-driven tPBM protocols</span>
-                        </div>
-                        <div className="flex items-center">
-                          <CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" />
-                          <span>Unlimited clients</span>
-                        </div>
+                    <td className="px-6 py-4">
+                      <div className="h-12 w-12 overflow-hidden rounded-md">
+                        <img src="/main-images/side view of helmet.jpg" alt="Neuronics Light helmet" className="h-full w-full object-cover" />
                       </div>
                     </td>
+                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">Neuronics Light Package</td>
+                    <td className="px-6 py-4 text-sm text-gray-700">Affordable at-home tPBM system delivering reliable, full-coverage near‑infrared stimulation.</td>
                     <td className="px-6 py-4 text-sm text-gray-700">
-                      Affordable at-home or in-office use; general brain wellness, focus, and stress support
+                      <div className="space-y-1">
+                        <div className="flex items-center"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" /><span>Unlimited client usability</span></div>
+                        <div className="flex items-center"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" /><span>Direct drop‑shipping to office or patient’s home</span></div>
+                        <div className="flex items-center"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" /><span>Designed for everyday use and simple setup</span></div>
+                        <div className="flex items-center"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" /><span>Full‑coverage stimulation across the scalp</span></div>
+                      </div>
                     </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">Built for BrainCore providers who want to extend care beyond the office—ideal for patients continuing tPBM sessions at home under provider guidance.</td>
                   </tr>
                   <tr className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                      Neuronics Neuroradiant 1070 Package
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">
-                      Advanced, clinical-grade system featuring 1070 nm near-infrared light for deeper brain stimulation.
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">
-                      <div className="space-y-1">
-                        <div className="flex items-center">
-                          <CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" />
-                          <span>1 year of unlimited AI-driven tPBM protocols</span>
-                        </div>
-                        <div className="flex items-center">
-                          <CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" />
-                          <span>Unlimited clients</span>
-                        </div>
+                    <td className="px-6 py-4">
+                      <div className="h-12 w-12 overflow-hidden rounded-md">
+                        <img src="/main-images/Neuradiant Helmet.png" alt="Neuroradiant 1070 helmet" className="h-full w-full object-cover" />
                       </div>
                     </td>
+                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">Neuronics Neuroradiant 1070 Package</td>
+                    <td className="px-6 py-4 text-sm text-gray-700">Advanced clinical‑grade system featuring targeted 1070 nm near‑infrared for deeper brain stimulation.</td>
                     <td className="px-6 py-4 text-sm text-gray-700">
-                      Professional-grade performance, neurorehabilitation, and cognitive optimization
+                      <div className="space-y-1">
+                        <div className="flex items-center"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" /><span>Research‑grade tPBM for in‑office use</span></div>
+                        <div className="flex items-center"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" /><span>Targeted 1070 nm stimulation reaching deeper structures</span></div>
+                        <div className="flex items-center"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" /><span>Enhanced cerebral blood flow and mitochondrial activation</span></div>
+                        <div className="flex items-center"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" /><span>Engineered for reliability, repeatability, and precision control</span></div>
+                        <div className="flex items-center"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" /><span>4‑Quadrant control with precision targeting</span></div>
+                      </div>
                     </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">Designed for clinical environments that demand the highest precision—brain recovery, performance optimization, and advanced neurofeedback integration.</td>
                   </tr>
                   <tr className="hover:bg-gray-50 transition-colors">
-                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">
-                      QEEG-Driven Protocol Subscription Package
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">
-                      Annual subscription for unlimited QEEG uploads to generate fully personalized tPBM protocols.
-                    </td>
-                    <td className="px-6 py-4 text-sm text-gray-700">
-                      <div className="space-y-1">
-                        <div className="flex items-center">
-                          <CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" />
-                          <span>1 year of unlimited AI-driven tPBM protocols</span>
-                        </div>
-                        <div className="flex items-center">
-                          <CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" />
-                          <span>Unlimited clients</span>
-                        </div>
+                    <td className="px-6 py-4">
+                      <div className="h-12 w-12 overflow-hidden rounded-md">
+                        <img src="/main-images/tpbm protocol setting on ios app.webp" alt="Subscription app" className="h-full w-full object-cover" />
                       </div>
                     </td>
+                    <td className="px-6 py-4 text-sm font-semibold text-gray-900">QEEG‑Driven Protocol Subscription Package</td>
+                    <td className="px-6 py-4 text-sm text-gray-700">Annual subscription that generates fully personalized tPBM protocols from unlimited QEEG uploads.</td>
                     <td className="px-6 py-4 text-sm text-gray-700">
-                      Clinics offering customized, data-driven light therapy tailored to each client
+                      <div className="space-y-1">
+                        <div className="flex items-center"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" /><span>Unlimited QEEG uploads</span></div>
+                        <div className="flex items-center"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" /><span>Unlimited clients</span></div>
+                        <div className="flex items-center"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" /><span>All protocol updates included</span></div>
+                      </div>
                     </td>
+                    <td className="px-6 py-4 text-sm text-gray-700">Clinics offering customized, data‑driven light therapy tailored to each client.</td>
                   </tr>
                 </tbody>
               </table>
