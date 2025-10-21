@@ -3,6 +3,7 @@ import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
 import { clientAPI, pbmProtocolAPI, providerAPI, Client, ClientDocument } from '../../lib/xano';
 import ProtocolModal from '../../components/ProtocolModal';
+import ProtocolModal1070 from '../../components/ProtocolModal1070';
 import ConditionSelectorModal from '../../components/ConditionSelectorModal';
 import BrainMapUploadWizard from '../../components/BrainMapUploadWizard';
 import SubscriptionRequiredModal from '../../components/SubscriptionRequiredModal';
@@ -23,6 +24,18 @@ export default function ClientDetailPage() {
   const [modalProtocolNumber, setModalProtocolNumber] = useState(0);
   const [modalProtocolPhases, setModalProtocolPhases] = useState<any[]>([]);
   const [modalProtocolLabel, setModalProtocolLabel] = useState<string>('');
+  const [showProtocol1070Modal, setShowProtocol1070Modal] = useState(false);
+  const [nrSteps, setNrSteps] = useState<any[]>([]);
+  const [nrCycles, setNrCycles] = useState<number>(1);
+  const [selectedHelmet, setSelectedHelmet] = useState<'light' | 'neuroradiant1070'>('light');
+  const pendingHelmetRef = useRef<'light' | 'neuroradiant1070' | null>(null);
+
+  // Initialize selectedHelmet from client default
+  React.useEffect(() => {
+    if (client && (client as any).helmet_type) {
+      setSelectedHelmet(((client as any).helmet_type as 'light' | 'neuroradiant1070') || 'light');
+    }
+  }, [client]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [showProcessing, setShowProcessing] = useState(false);
   const [processingText, setProcessingText] = useState('');
@@ -200,7 +213,44 @@ export default function ClientDetailPage() {
   };
 
   const handleViewProtocol = (protocol: any) => {
-    // Convert PBMProtocol to phases format
+    // If protocol was saved for 1070, show 4-card modal using packed steps
+    if (protocol.helmet_type === 'neuroradiant1070' && Array.isArray(protocol.nr_steps_json) && protocol.nr_steps_json.length >= 4) {
+      setModalProtocolNumber(protocol.nr_protocol_id || 0);
+      setModalProtocolLabel(protocol.label);
+      setNrSteps(protocol.nr_steps_json);
+      setNrCycles(protocol.nr_cycles || 1);
+      setShowProtocol1070Modal(true);
+      return;
+    }
+
+    // Label-based fallback for older NR1070 protocols: "Map N – NR1070 – P{ID}"
+    if (typeof protocol.label === 'string' && /NR1070/i.test(protocol.label)) {
+      try {
+        const match = protocol.label.match(/P(\d+)/i);
+        let mappedId = match ? parseInt(match[1], 10) : NaN;
+        // Fallback: if label lacks P{ID}, use client's saved nfb_protocol
+        if (isNaN(mappedId) && client?.nfb_protocol && client.nfb_protocol >= 1 && client.nfb_protocol <= 12) {
+          mappedId = client.nfb_protocol;
+        }
+        if (!isNaN(mappedId)) {
+          // Load local definitions and open 4-card modal
+          const defs = require('../../protocol-logic/neuroradiant_definitions.json');
+          const def = defs[String(mappedId)];
+          if (def && Array.isArray(def.steps)) {
+            setModalProtocolNumber(mappedId);
+            setModalProtocolLabel(protocol.label);
+            setNrSteps(def.steps);
+            setNrCycles(def.cycles || 1);
+            setShowProtocol1070Modal(true);
+            return;
+          }
+        }
+      } catch (e) {
+        // fall through to 3-card
+      }
+    }
+
+    // Otherwise, show 3-card modal from stage fields
     const phases = [
       {
         phase: 'Initial',
@@ -255,8 +305,8 @@ export default function ClientDetailPage() {
       await pbmProtocolAPI.deleteProtocol(protocolToDelete);
       // Refresh protocols list
       if (client?.id) {
-        const protocols = await pbmProtocolAPI.getAllProtocolsByClientId(client.id);
-        setAllProtocols(protocols);
+      const protocols = await pbmProtocolAPI.getAllProtocolsByClientId(client.id);
+      setAllProtocols(protocols);
       }
       setShowDeleteProtocolModal(false);
       setProtocolToDelete(null);
@@ -315,6 +365,8 @@ export default function ClientDetailPage() {
       formData.append('file', file);
       formData.append('condition', condition); // Pass the user-selected condition
       formData.append('consent', 'true');
+      const helmetForRequest = pendingHelmetRef.current || selectedHelmet;
+      formData.append('helmetType', helmetForRequest);
 
       console.log('🚀 Sending to API with condition:', condition);
 
@@ -361,7 +413,15 @@ export default function ClientDetailPage() {
             protocol,
             condition,
             client.first_name,
-            (client.last_initial || client.last_name?.charAt(0) || '').toUpperCase()
+            (client.last_initial || client.last_name?.charAt(0) || '').toUpperCase(),
+            result.helmet_type === 'neuroradiant1070' && result.neuroradiant
+              ? {
+                  helmet_type: 'neuroradiant1070',
+                  nr_protocol_id: protocol,
+                  nr_cycles: result.neuroradiant.cycles,
+                  nr_steps: result.neuroradiant.steps,
+                }
+              : undefined
           );
           console.log('PBM protocol saved successfully');
 
@@ -400,11 +460,17 @@ export default function ClientDetailPage() {
         await new Promise(resolve => setTimeout(resolve, remainingTime));
       }
 
-      // Show the professional modal with phases
+      // Show the appropriate modal
       setModalProtocolNumber(protocol);
-      setModalProtocolPhases(phases);
       setModalProtocolLabel(label || '');
-      setShowProtocolModal(true);
+      if (result.helmet_type === 'neuroradiant1070' && result.neuroradiant?.steps) {
+        setNrSteps(result.neuroradiant.steps);
+        setNrCycles(result.neuroradiant.cycles || 1);
+        setShowProtocol1070Modal(true);
+      } else {
+        setModalProtocolPhases(phases);
+        setShowProtocolModal(true);
+      }
     } catch (error) {
       console.error('Error generating protocol:', error);
       alert(`Failed to extract protocol: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -475,6 +541,29 @@ export default function ClientDetailPage() {
               <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                 <dt className="text-sm font-medium text-gray-500">BrainCore ID</dt>
                 <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">{client.braincore_id || '—'}</dd>
+              </div>
+              <div className="bg-gray-50 px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
+                <dt className="text-sm font-medium text-gray-500">Default Helmet</dt>
+                <dd className="mt-1 text-sm text-gray-900 sm:mt-0 sm:col-span-2">
+                  <select
+                    value={selectedHelmet}
+                    onChange={async (e) => {
+                      const hv = (e.target.value as 'light' | 'neuroradiant1070');
+                      setSelectedHelmet(hv);
+                      if (client?.id) {
+                        try {
+                          await clientAPI.updateClient(client.id.toString(), { helmet_type: hv as any });
+                        } catch (err) {
+                          console.error('Failed to update default helmet:', err);
+                        }
+                      }
+                    }}
+                    className="mt-1 block w-64 border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                  >
+                    <option value="light">Neuronics Light Package</option>
+                    <option value="neuroradiant1070">Neuronics Neuroradiant 1070</option>
+                  </select>
+                </dd>
               </div>
               <div className="bg-white px-4 py-5 sm:grid sm:grid-cols-3 sm:gap-4 sm:px-6">
                 <dt className="text-sm font-medium text-gray-500">Date Added</dt>
@@ -579,6 +668,11 @@ export default function ClientDetailPage() {
                                 <p className="text-sm text-gray-500">
                                   <span className="font-medium">Condition:</span> {condition}
                                 </p>
+                                {protocol.helmet_type && (
+                                  <p className="text-sm text-gray-500">
+                                    <span className="font-medium">Helmet:</span> {protocol.helmet_type === 'neuroradiant1070' ? 'Neuroradiant 1070' : 'Light'}
+                                  </p>
+                                )}
                                 <p className="text-sm text-gray-500">
                                   <span className="font-medium">Date:</span> {new Date(protocol.created_at).toLocaleDateString()}
                                 </p>
@@ -690,7 +784,13 @@ export default function ClientDetailPage() {
       <BrainMapUploadWizard
         isOpen={showBrainMapWizard}
         onClose={() => setShowBrainMapWizard(false)}
-        onSubmit={handleWizardSubmit}
+        onSubmit={(file, condition, helmet) => {
+          if (helmet) {
+            setSelectedHelmet(helmet);
+            pendingHelmetRef.current = helmet;
+          }
+          handleWizardSubmit(file, condition);
+        }}
         clientName={getFullName()}
       />
 
@@ -701,6 +801,16 @@ export default function ClientDetailPage() {
         protocolNumber={modalProtocolNumber}
         clientName={getFullName()}
         phases={modalProtocolPhases}
+        protocolLabel={modalProtocolLabel}
+      />
+
+      <ProtocolModal1070
+        isOpen={showProtocol1070Modal}
+        onClose={() => setShowProtocol1070Modal(false)}
+        protocolNumber={modalProtocolNumber}
+        clientName={getFullName()}
+        steps={nrSteps}
+        cycles={nrCycles}
         protocolLabel={modalProtocolLabel}
       />
 

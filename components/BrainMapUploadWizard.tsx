@@ -1,10 +1,11 @@
 import React, { useState, useRef } from 'react';
 import { CONDITIONS, CONDITION_DISPLAY_NAMES } from '../lib/conditions';
+import { HELMET_DISPLAY_NAMES, HelmetType } from '../lib/helmet';
 
 interface BrainMapUploadWizardProps {
   isOpen: boolean;
   onClose: () => void;
-  onSubmit: (file: File, condition: string) => void;
+  onSubmit: (file: File, condition: string, helmetType?: HelmetType) => void;
   clientName: string;
 }
 
@@ -17,6 +18,7 @@ export default function BrainMapUploadWizard({
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [selectedCondition, setSelectedCondition] = useState<string>('');
+  const [selectedHelmet, setSelectedHelmet] = useState<HelmetType>('light');
   const [dragActive, setDragActive] = useState(false);
   const [consentChecked, setConsentChecked] = useState(false);
   const [consentError, setConsentError] = useState(false);
@@ -79,11 +81,12 @@ export default function BrainMapUploadWizard({
       return;
     }
     if (selectedFile && selectedCondition) {
-      onSubmit(selectedFile, selectedCondition);
+      onSubmit(selectedFile, selectedCondition, selectedHelmet);
       // Reset state
       setStep(1);
       setSelectedFile(null);
       setSelectedCondition('');
+      setSelectedHelmet('light');
       setConsentChecked(false);
       setConsentError(false);
     }
@@ -94,6 +97,7 @@ export default function BrainMapUploadWizard({
     setStep(1);
     setSelectedFile(null);
     setSelectedCondition('');
+    setSelectedHelmet('light');
     setDragActive(false);
     setConsentChecked(false);
     setConsentError(false);
@@ -279,6 +283,22 @@ export default function BrainMapUploadWizard({
           {/* Step 2: Select Condition */}
           {step === 2 && (
             <div className="space-y-4">
+              {/* Helmet Selector */}
+              <div>
+                <label className="block text-sm font-medium text-gray-700">Helmet</label>
+                <div className="mt-1 grid grid-cols-2 gap-3">
+                  {(['light','neuroradiant1070'] as HelmetType[]).map((h) => (
+                    <button
+                      key={h}
+                      type="button"
+                      onClick={() => setSelectedHelmet(h)}
+                      className={`px-3 py-2 rounded-md border-2 text-sm font-medium ${selectedHelmet === h ? 'border-indigo-600 bg-indigo-50 text-indigo-700' : 'border-gray-200 text-gray-700 hover:border-indigo-300'}`}
+                    >
+                      {HELMET_DISPLAY_NAMES[h]}
+                    </button>
+                  ))}
+                </div>
+              </div>
               <p className="text-sm text-gray-700 mb-4">
                 Select the condition that best describes this client's primary concern:
               </p>

@@ -24,6 +24,9 @@ const protocolRouter = JSON.parse(
 const protocolDefinitions = JSON.parse(
   fs.readFileSync(path.join(protocolLogicPath, 'protocol_definitions.json'), 'utf-8')
 );
+const neuroradiantDefinitions = JSON.parse(
+  fs.readFileSync(path.join(protocolLogicPath, 'neuroradiant_definitions.json'), 'utf-8')
+);
 
 export default async function handler(
   req: NextApiRequest,
@@ -43,6 +46,12 @@ export default async function handler(
     const userSelectedCondition = Array.isArray(fields.condition)
       ? fields.condition[0]
       : fields.condition;
+
+    // Optional helmet type (light | neuroradiant1070)
+    const userHelmetType = Array.isArray(fields.helmetType)
+      ? fields.helmetType[0]
+      : fields.helmetType;
+    const helmetType = typeof userHelmetType === 'string' ? userHelmetType : 'light';
 
     // Require explicit consent
     const consentField = Array.isArray(fields.consent) ? fields.consent[0] : fields.consent;
@@ -186,7 +195,20 @@ EXAMPLE OUTPUT:
       });
     }
 
-    const phases = protocolDefinitions[String(protocolId)] || [];
+    const isNeuroradiant = helmetType === 'neuroradiant1070';
+    let phases = protocolDefinitions[String(protocolId)] || [];
+    let nrPayload: any = null;
+    if (isNeuroradiant) {
+      const def = neuroradiantDefinitions[String(protocolId)];
+      if (def) {
+        nrPayload = {
+          protocol_id: protocolId,
+          cycles: def.cycles,
+          steps: def.steps,
+        };
+      }
+    }
+
     console.log('✅ SUCCESS! Returning Protocol ID:', protocolId);
     console.log('   Number of phases:', phases.length);
     console.log('═══════════════════════════════════════════════');
@@ -195,13 +217,25 @@ EXAMPLE OUTPUT:
     fs.unlinkSync(file.filepath);
 
     // Return success JSON
-    return res.status(200).json({
-      ok: true,
-      condition,
-      index,
-      protocol_id: protocolId,
-      phases
-    });
+    return res.status(200).json(
+      isNeuroradiant
+        ? {
+            ok: true,
+            condition,
+            index,
+            protocol_id: protocolId,
+            phases,
+            helmet_type: helmetType,
+            neuroradiant: nrPayload,
+          }
+        : {
+            ok: true,
+            condition,
+            index,
+            protocol_id: protocolId,
+            phases,
+          }
+    );
 
   } catch (error) {
     console.error('Error extracting protocol:', error);
