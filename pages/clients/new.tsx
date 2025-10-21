@@ -3,6 +3,7 @@ import Layout from '../../components/Layout';
 import { clientAPI, pbmProtocolAPI, providerAPI, Client, Protocol, clearCache } from '../../lib/xano';
 import { useRouter } from 'next/router';
 import { CONDITIONS, CONDITION_DISPLAY_NAMES } from '../../lib/conditions';
+import SubscriptionRequiredModal from '../../components/SubscriptionRequiredModal';
 
 export default function NewClientPage() {
   const router = useRouter();
@@ -20,6 +21,8 @@ export default function NewClientPage() {
   const [dragActive, setDragActive] = useState(false);
   const [consentChecked, setConsentChecked] = useState(false);
   const [consentError, setConsentError] = useState(false);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<'active' | 'expired' | null>(null);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   useEffect(() => {
     const fetchProviderInfo = async () => {
@@ -36,6 +39,7 @@ export default function NewClientPage() {
             
             if (provider?.id) {
               setProviderId(provider.id);
+              setSubscriptionStatus(provider.subscription_status || null);
             } else {
               console.error('No provider found for email:', member.data.auth.email);
               setError('Provider profile not found. Please contact support.');
@@ -92,6 +96,13 @@ export default function NewClientPage() {
     event.preventDefault();
     setLoading(true);
     setError(null);
+
+    // Check subscription status first
+    if (subscriptionStatus === 'expired') {
+      setLoading(false);
+      setShowSubscriptionModal(true);
+      return;
+    }
 
     if (!consentChecked) {
       setConsentError(true);
@@ -491,6 +502,12 @@ export default function NewClientPage() {
           </form>
         </div>
       </div>
+
+      {/* Subscription Required Modal */}
+      <SubscriptionRequiredModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+      />
     </Layout>
   );
 }

@@ -70,7 +70,7 @@ export default function Layout({ children, title }: LayoutProps) {
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
                 <Link href="/" className="text-xl font-bold" style={{ color: '#4F47E6' }}>
-                  TPBM Protocols
+                  tPBM Protocols
                 </Link>
               </div>
               {member && (

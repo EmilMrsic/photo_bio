@@ -77,7 +77,7 @@ export default function LoginPage() {
                 QEEG-driven photobiomodulation for better brain health
               </h1>
               <p className="mt-4 text-lg text-gray-600">
-                Sign in to access your personalized TPBM protocols
+                Sign in to access your personalized tPBM protocols
               </p>
             </div>
 
@@ -103,7 +103,7 @@ export default function LoginPage() {
                         <iframe
                           class="absolute top-0 left-0 w-full h-full border-0"
                           src="https://customer-f57etvnofv3kxoyh.cloudflarestream.com/4ca36ee41542c9962b04eb69e77e4790/iframe?autoplay=true"
-                          title="Dr. Guy Annunziata explains QEEG-guided TPBM"
+                          title="Dr. Guy Annunziata explains QEEG-guided tPBM"
                           allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
                           allowfullscreen
                         ></iframe>

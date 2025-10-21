@@ -1,10 +1,11 @@
 import React, { useEffect, useState, useRef } from 'react';
 import { useRouter } from 'next/router';
 import Layout from '../../components/Layout';
-import { clientAPI, pbmProtocolAPI, Client, ClientDocument } from '../../lib/xano';
+import { clientAPI, pbmProtocolAPI, providerAPI, Client, ClientDocument } from '../../lib/xano';
 import ProtocolModal from '../../components/ProtocolModal';
 import ConditionSelectorModal from '../../components/ConditionSelectorModal';
 import BrainMapUploadWizard from '../../components/BrainMapUploadWizard';
+import SubscriptionRequiredModal from '../../components/SubscriptionRequiredModal';
 
 const XANO_BASE_URL = process.env.NEXT_PUBLIC_XANO_API_URL || '';
 
@@ -32,6 +33,8 @@ export default function ClientDetailPage() {
   const [showDeleteClientModal, setShowDeleteClientModal] = useState(false);
   const [showDeleteProtocolModal, setShowDeleteProtocolModal] = useState(false);
   const [protocolToDelete, setProtocolToDelete] = useState<number | null>(null);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<'active' | 'expired' | null>(null);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   // Helper function to extract client ID from slug
   const getClientIdFromSlug = (slug: string): string => {
@@ -61,6 +64,18 @@ export default function ClientDetailPage() {
         const clientData = await clientAPI.getClient(clientId);
         console.log('Client data:', clientData);
         setClient(clientData);
+
+        // Fetch provider subscription status
+        if (typeof window !== 'undefined' && (window as any).memberstack) {
+          const memberstack = (window as any).memberstack;
+          const member = await memberstack.getCurrentMember();
+          if (member?.data?.auth?.email) {
+            const provider = await providerAPI.getProviderByEmail(member.data.auth.email);
+            if (provider) {
+              setSubscriptionStatus(provider.subscription_status || null);
+            }
+          }
+        }
 
         // Update URL to use proper slug format if currently using numeric ID
         const displayLastInitial = (clientData.last_initial || clientData.last_name?.charAt(0) || '').toUpperCase();
@@ -499,7 +514,13 @@ export default function ClientDetailPage() {
             </div>
             <div>
               <button
-                onClick={() => setShowBrainMapWizard(true)}
+                onClick={() => {
+                  if (subscriptionStatus === 'expired') {
+                    setShowSubscriptionModal(true);
+                  } else {
+                    setShowBrainMapWizard(true);
+                  }
+                }}
                 disabled={uploadingPdf}
                 className="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 disabled:opacity-50 disabled:cursor-not-allowed"
               >
@@ -771,6 +792,12 @@ export default function ClientDetailPage() {
           </div>
         </div>
       )}
+
+      {/* Subscription Required Modal */}
+      <SubscriptionRequiredModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+      />
     </Layout>
   );
 }

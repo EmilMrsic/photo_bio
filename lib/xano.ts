@@ -66,6 +66,7 @@ export interface Provider {
   practice?: string;
   practice_type?: string;
   role: 'provider' | 'admin';
+  subscription_status?: 'active' | 'expired';
   created_at?: string;
   updated_at?: string;
 }

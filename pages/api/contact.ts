@@ -70,7 +70,7 @@ ${message}
             }],
             from: {
               email: process.env.SENDGRID_FROM_EMAIL || 'noreply@tpbmprotocols.com',
-              name: 'TPBM Protocols Contact Form'
+              name: 'tPBM Protocols Contact Form'
             },
             reply_to: {
               email: email,
