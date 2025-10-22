@@ -34,6 +34,7 @@ export default function LoginPage() {
           // Store provider data for verification page to use
           sessionStorage.setItem('prefetched_provider', JSON.stringify(data.provider));
           sessionStorage.setItem('has_practice', data.hasPractice ? 'true' : 'false');
+          sessionStorage.setItem('has_onboarded', data.hasOnboarded ? 'true' : 'false');
         }
         return data;
       }).catch(err => {

@@ -145,11 +145,13 @@ export function useMemberstack() {
         localStorage.removeItem('memberstack_logged_out');
       }
 
-      // Check if we have prefetched provider data with practice field
-      const hasPractice = sessionStorage.getItem('has_practice') === 'true';
+      // Check if we have prefetched provider data with onboarded field
+      const onboardedStatus = sessionStorage.getItem('has_onboarded');
+      const hasOnboarded = onboardedStatus === 'true';
       const prefetchedProvider = sessionStorage.getItem('prefetched_provider');
 
-      console.log('[Verification] Has practice:', hasPractice);
+      console.log('[Verification] Onboarded status from storage:', onboardedStatus);
+      console.log('[Verification] Has onboarded:', hasOnboarded);
       console.log('[Verification] Prefetched provider exists:', !!prefetchedProvider);
 
       // Try login first for existing users
@@ -164,15 +166,22 @@ export function useMemberstack() {
           // Check if member needs onboarding
           const role = result.data.member.data?.customFields?.role;
 
-          // SKIP ONBOARDING if provider has practice field in Xano
-          if (hasPractice) {
-            console.log('[Verification] Skipping onboarding - provider has practice');
+          // Check onboarded status first - this takes priority over role
+          if (onboardedStatus === 'true') {
+            console.log('[Verification] Provider has onboarded - redirecting to clients');
             window.location.href = '/clients'; // Force full page redirect to avoid URL issues
+          } else if (onboardedStatus === 'false') {
+            // Explicitly false means user needs onboarding
+            console.log('[Verification] Provider has not onboarded - redirecting to onboarding');
+            router.replace('/onboarding');
           } else if (!role) {
+            // No onboarded status found, fallback to role check for new users
+            console.log('[Verification] No onboarded status, no role - redirecting to onboarding');
             router.replace('/onboarding');
           } else if (role === 'admin') {
             router.replace('/admin/dashboard');
           } else if (role === 'provider') {
+            // Existing provider without onboarded field - go to clients for backward compatibility
             router.replace('/clients');
           }
           return { success: true, member: result.data.member };
@@ -189,9 +198,9 @@ export function useMemberstack() {
         if (result.data?.member) {
           setMember(result.data.member);
 
-          // Check if this is actually an existing provider with practice data
-          if (hasPractice && prefetchedProvider) {
-            console.log('[Verification] New signup but provider exists with practice - redirecting to clients');
+          // Check if this is actually an existing provider with onboarded status
+          if (onboardedStatus === 'true' && prefetchedProvider) {
+            console.log('[Verification] New signup but provider exists with onboarded status - redirecting to clients');
             // Update Memberstack with provider role
             try {
               const providerData = JSON.parse(prefetchedProvider);
@@ -208,8 +217,13 @@ export function useMemberstack() {
               console.error('[Verification] Failed to update Memberstack with provider data:', updateError);
             }
             window.location.href = '/clients'; // Force full page redirect to avoid URL issues
+          } else if (onboardedStatus === 'false') {
+            // Provider exists but hasn't onboarded yet
+            console.log('[Verification] Provider exists but has not onboarded - redirecting to onboarding');
+            router.replace('/onboarding');
           } else {
-            // New users without practice need onboarding
+            // New users without provider data need onboarding
+            console.log('[Verification] New user without onboarded status - redirecting to onboarding');
             router.replace('/onboarding');
           }
           return { success: true, member: result.data.member };

@@ -102,9 +102,9 @@ export default function VerifyPage() {
     setLoading(true);
     setError('');
 
-    // Check if user has practice field BEFORE calling verifyCode
-    const hasPractice = sessionStorage.getItem('has_practice') === 'true';
-    console.log('[Verify Page] Has practice:', hasPractice);
+    // Check if user has onboarded field BEFORE calling verifyCode
+    const hasOnboarded = sessionStorage.getItem('has_onboarded') === 'true';
+    console.log('[Verify Page] Has onboarded:', hasOnboarded);
 
     const result = await verifyCode(fullCode);
 
@@ -112,8 +112,8 @@ export default function VerifyPage() {
       setError(result.error);
       setLoading(false);
     } else {
-      // If user has practice, force redirect to clients immediately
-      if (hasPractice) {
+      // If user has onboarded, force redirect to clients immediately
+      if (hasOnboarded) {
         console.log('[Verify Page] Forcing redirect to /clients');
         window.location.href = '/clients';
       } else {

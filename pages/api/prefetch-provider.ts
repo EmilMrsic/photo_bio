@@ -36,14 +36,17 @@ export default async function handler(
           practice: provider.practice,
           practice_type: provider.practice_type,
           role: provider.role,
+          onboarded: provider.onboarded,
         },
         hasPractice: !!provider.practice, // Check if practice field exists
+        hasOnboarded: !!provider.onboarded, // Check if onboarded field is true
       });
     } else {
       console.log('[Prefetch] No provider found for email:', email);
       return res.status(200).json({
         found: false,
         hasPractice: false,
+        hasOnboarded: false,
       });
     }
   } catch (error) {

@@ -17,30 +17,39 @@ export default function OnboardingPage() {
   const [error, setError] = useState('');
   const [isRedirecting, setIsRedirecting] = useState(false);
 
-  // Redirect if user already has a role OR has practice data
+  // Redirect if user has already onboarded
   useEffect(() => {
-    // IMMEDIATE CHECK: If user has practice data from prefetch, skip onboarding
+    // IMMEDIATE CHECK: If user has onboarded from prefetch, skip onboarding
     if (typeof window !== 'undefined') {
-      const hasPractice = sessionStorage.getItem('has_practice') === 'true';
-      if (hasPractice) {
-        console.log('[Onboarding] User has practice - redirecting to clients immediately');
+      const onboardedStatus = sessionStorage.getItem('has_onboarded');
+      
+      if (onboardedStatus === 'true') {
+        console.log('[Onboarding] User has onboarded - redirecting to clients immediately');
         setIsRedirecting(true);
         router.replace('/clients'); // Use replace to avoid back button issues
+        return;
+      } else if (onboardedStatus === 'false') {
+        // User explicitly needs onboarding - stay on this page
+        console.log('[Onboarding] User has not onboarded - staying on onboarding page');
         return;
       }
     }
 
-    // Secondary check: if user already has a role in Memberstack
+    // Secondary check: if user already has a role in Memberstack (only if no onboarded status)
+    // This is for backward compatibility with users who don't have the onboarded field yet
     if (!memberLoading && member) {
       console.log('Onboarding - Member role:', role);
       console.log('Onboarding - Full member:', member);
 
-      if (role === 'provider') {
-        setIsRedirecting(true);
-        router.replace('/clients');
-      } else if (role === 'admin') {
+      if (role === 'admin') {
         setIsRedirecting(true);
         router.replace('/admin/dashboard');
+      } else if (role === 'provider') {
+        // Only redirect existing providers to clients if they don't have an explicit onboarded status
+        // This maintains backward compatibility
+        console.log('[Onboarding] Existing provider without onboarded field - redirecting to clients');
+        setIsRedirecting(true);
+        router.replace('/clients');
       }
     }
   }, [memberLoading, member, role, router]);
@@ -95,6 +104,7 @@ export default function OnboardingPage() {
             practice: formData.practice,
             practice_type: formData.practiceType,
             role: 'provider',
+            onboarded: true, // Set onboarded to true after completing onboarding
           });
           console.log('Provider synced to Xano successfully');
         } catch (xanoError) {
