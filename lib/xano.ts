@@ -1,4 +1,5 @@
 // Xano API Configuration
+import type { HelmetType } from './helmet';
 // Support both env names: NEXT_PUBLIC_XANO_API_URL and legacy NEXT_PUBLIC_XANO_API
 const XANO_API_BASE =
   process.env.NEXT_PUBLIC_XANO_API_URL ||
@@ -51,6 +52,7 @@ export interface Client {
   map_pdf_url?: string;
   cec_result?: any;  // JSON type
   nfb_protocol?: number;  // 1-12
+  helmet_type?: HelmetType; // default helmet selection
   notes?: string;  // Client notes
   created_at?: string;
   updated_at?: string;
@@ -66,6 +68,7 @@ export interface Provider {
   practice?: string;
   practice_type?: string;
   role: 'provider' | 'admin';
+  subscription_status?: 'active' | 'expired';
   created_at?: string;
   updated_at?: string;
 }
@@ -123,6 +126,16 @@ export interface PBMProtocol {
   stage_3_intensity: number;  // Advanced phase intensity_percent
   label: string;  // Protocol label/name
   clients_id: number;  // Client ID this protocol belongs to
+  // 1070-packed extras (Option B)
+  helmet_type?: HelmetType;
+  nr_protocol_id?: number;
+  nr_cycles?: number;
+  nr_steps_json?: Array<{
+    quadrant: string;
+    pulse_hz: number;
+    intensity_percent: number;
+    duration_min: number;
+  }>;
 }
 
 // Helper function to get auth token from Memberstack
@@ -919,7 +932,18 @@ export const pbmProtocolAPI = {
     protocolId: number,
     condition: string,
     clientFirstName: string,
-    clientLastInitial?: string
+    clientLastInitial?: string,
+    extras?: {
+      helmet_type?: HelmetType;
+      nr_protocol_id?: number;
+      nr_cycles?: number;
+      nr_steps?: Array<{
+        quadrant: string;
+        pulse_hz: number;
+        intensity_percent: number;
+        duration_min: number;
+      }>;
+    }
   ): Promise<PBMProtocol> {
     try {
       // Extract phase data - assuming phases are ordered: Initial, Intermediate, Advanced
@@ -941,7 +965,12 @@ export const pbmProtocolAPI = {
           existingCount = allProtocols.filter((p: PBMProtocol) => p.clients_id === clientId).length;
         }
       }
-      const label = `Map ${existingCount + 1}`;
+      let label = `Map ${existingCount + 1}`;
+      if (extras?.helmet_type === 'neuroradiant1070') {
+        label = `Map ${existingCount + 1} - Neuroradiant 1070`;
+      } else if (extras?.helmet_type === 'light') {
+        label = `Map ${existingCount + 1} - Light`;
+      }
 
       const protocolData: Omit<PBMProtocol, 'id' | 'created_at'> = {
         hz: initial.frequency_hz || 0,
@@ -953,7 +982,19 @@ export const pbmProtocolAPI = {
         stage_3_intensity: advanced.intensity_percent || 0,
         label,
         clients_id: clientId,
+        // Pack 1070 extras if provided (Option B)
+        helmet_type: extras?.helmet_type,
+        nr_protocol_id: extras?.nr_protocol_id,
+        nr_cycles: extras?.nr_cycles,
+        nr_steps_json: extras?.nr_steps,
       };
+
+      console.log('🔍 Creating protocol with data:', {
+        ...protocolData,
+        nr_steps_json_preview: protocolData.nr_steps_json ? 
+          `Array(${protocolData.nr_steps_json.length})` : 
+          undefined
+      });
 
       const response = await fetch(`${XANO_API_BASE}/pbm_protocols`, {
         method: 'POST',
@@ -963,10 +1004,19 @@ export const pbmProtocolAPI = {
 
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('❌ Failed to create protocol. Response:', errorText);
         throw new Error(`Failed to create PBM protocol: ${errorText}`);
       }
 
-      return await response.json();
+      const savedProtocol = await response.json();
+      console.log('✅ Protocol saved. Returned data:', {
+        ...savedProtocol,
+        nr_steps_json_preview: savedProtocol.nr_steps_json ? 
+          `Array(${savedProtocol.nr_steps_json.length})` : 
+          undefined
+      });
+
+      return savedProtocol;
     } catch (error) {
       console.error('Error creating PBM protocol:', error);
       throw error;

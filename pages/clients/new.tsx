@@ -3,6 +3,8 @@ import Layout from '../../components/Layout';
 import { clientAPI, pbmProtocolAPI, providerAPI, Client, Protocol, clearCache } from '../../lib/xano';
 import { useRouter } from 'next/router';
 import { CONDITIONS, CONDITION_DISPLAY_NAMES } from '../../lib/conditions';
+import { HELMET_DISPLAY_NAMES, HelmetType } from '../../lib/helmet';
+import SubscriptionRequiredModal from '../../components/SubscriptionRequiredModal';
 
 export default function NewClientPage() {
   const router = useRouter();
@@ -15,11 +17,14 @@ export default function NewClientPage() {
   const [error, setError] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   const [providerId, setProviderId] = useState<number | null>(null);
+  const [helmetType, setHelmetType] = useState<HelmetType>('light');
   const [showProcessing, setShowProcessing] = useState(false);
   const [processingText, setProcessingText] = useState('');
   const [dragActive, setDragActive] = useState(false);
   const [consentChecked, setConsentChecked] = useState(false);
   const [consentError, setConsentError] = useState(false);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<'active' | 'expired' | null>(null);
+  const [showSubscriptionModal, setShowSubscriptionModal] = useState(false);
 
   useEffect(() => {
     const fetchProviderInfo = async () => {
@@ -36,6 +41,7 @@ export default function NewClientPage() {
             
             if (provider?.id) {
               setProviderId(provider.id);
+              setSubscriptionStatus(provider.subscription_status || null);
             } else {
               console.error('No provider found for email:', member.data.auth.email);
               setError('Provider profile not found. Please contact support.');
@@ -92,6 +98,13 @@ export default function NewClientPage() {
     event.preventDefault();
     setLoading(true);
     setError(null);
+
+    // Check subscription status first
+    if (subscriptionStatus === 'expired') {
+      setLoading(false);
+      setShowSubscriptionModal(true);
+      return;
+    }
 
     if (!consentChecked) {
       setConsentError(true);
@@ -159,6 +172,7 @@ export default function NewClientPage() {
         last_initial: (lastInitial || '').charAt(0).toUpperCase(),
         braincore_id: braincoreId,
         condition: condition || undefined,
+        helmet_type: helmetType,
         map_pdf_url: undefined, // Will be updated after PDF upload
         notes: notes || undefined,
       };
@@ -197,6 +211,7 @@ export default function NewClientPage() {
             protocolFormData.append('condition', condition);
             protocolFormData.append('clientId', createdClient.id.toString());
             protocolFormData.append('consent', 'true');
+            protocolFormData.append('helmetType', helmetType);
 
             console.log('FormData prepared, calling /api/extract-protocol');
             const response = await fetch('/api/extract-protocol', {
@@ -232,7 +247,17 @@ export default function NewClientPage() {
                   protocol,
                   condition,
                   firstName,
-                  (lastInitial || '').charAt(0).toUpperCase()
+                  (lastInitial || '').charAt(0).toUpperCase(),
+                  result.helmet_type === 'neuroradiant1070' && result.neuroradiant
+                    ? {
+                        helmet_type: 'neuroradiant1070',
+                        nr_protocol_id: protocol,
+                        nr_cycles: result.neuroradiant.cycles,
+                        nr_steps: result.neuroradiant.steps,
+                      }
+                    : {
+                        helmet_type: result.helmet_type || 'light',
+                      }
                 );
                 console.log('PBM protocol saved successfully to Xano');
               } catch (pbmError) {
@@ -372,6 +397,25 @@ export default function NewClientPage() {
                 </select>
               </div>
 
+              {/* Default Helmet */}
+              <div>
+                <label htmlFor="helmet" className="block text-sm font-medium text-gray-700">
+                  Default Helmet
+                </label>
+                <select
+                  id="helmet"
+                  value={helmetType}
+                  onChange={(e) => setHelmetType(e.target.value as HelmetType)}
+                  className="mt-1 block w-full border-gray-300 rounded-md shadow-sm focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm"
+                >
+                  {(['light','neuroradiant1070'] as HelmetType[]).map((h) => (
+                    <option key={h} value={h}>
+                      {HELMET_DISPLAY_NAMES[h]}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
               {/* Notes Field */}
               <div className="sm:col-span-2">
                 <label htmlFor="notes" className="block text-sm font-medium text-gray-700">
@@ -491,6 +535,12 @@ export default function NewClientPage() {
           </form>
         </div>
       </div>
+
+      {/* Subscription Required Modal */}
+      <SubscriptionRequiredModal
+        isOpen={showSubscriptionModal}
+        onClose={() => setShowSubscriptionModal(false)}
+      />
     </Layout>
   );
 }

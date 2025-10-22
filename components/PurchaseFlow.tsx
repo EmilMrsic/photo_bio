@@ -144,15 +144,16 @@ export default function PurchaseFlow({ variant = 'full', defaultOpen, id }: Purc
     completeStep1(model);
   };
 
-  const launchSubscription = (url: string) => {
-    trackEvent('subscription_activate_click');
+  const launchSubscription = (url: string, planType: 'monthly' | 'annual') => {
+    trackEvent('subscription_activate_click', { planType });
     window.open(url, '_blank', 'noopener');
   };
 
   // URLs
   const V1_URL = 'https://www.neuronic.online/products/neuronic-light-1070nm-photobiomodulation-helmet-with-app-connectivity';
   const V2_URL = 'https://www.neuronic.online/products/neuradiant-1070-non-invasive-photobiomodulation-helmet';
-  const SUB_URL = 'https://buy.stripe.com/aFabJ13rU10tgL24nwe3e00';
+  const SUB_MONTHLY_URL = 'https://buy.stripe.com/4gMaEX0fI7oReCU1bke3e03';
+  const SUB_ANNUAL_URL = 'https://buy.stripe.com/9B63cv0fI24x0M4g6ee3e04';
 
   const sectionBase = 'rounded-2xl bg-white shadow-md ring-1 ring-gray-200';
   const headerBase = 'w-full text-left flex items-center px-6 py-5';
@@ -309,19 +310,40 @@ export default function PurchaseFlow({ variant = 'full', defaultOpen, id }: Purc
               <div className="pl-8">
                 <div className="text-sm font-semibold text-gray-900">A. Activate Subscription</div>
                 <p className="mt-1 text-sm text-gray-600">
-                  Step 2A: Activate your plan to receive photobiomodulation protocols and ongoing updates. A plan is required to use your helmet with our service.
+                  Choose monthly or annual subscription for unlimited QEEG uploads to generate fully personalized tPBM protocols. Unlimited clients and continuous protocol updates.
                 </p>
-                <div className="mt-4 rounded-xl bg-gray-50 p-5 ring-1 ring-gray-200">
-                  <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-                    <div>
-                      <div className="text-base font-semibold text-gray-900">Provider Annual Plan</div>
-                      <div className="text-sm text-gray-600">Unlimited clients • Unlimited QEEG uploads • All protocol updates</div>
+                <div className="mt-4 space-y-3">
+                  {/* Monthly Option */}
+                  <div className="rounded-lg border border-gray-300 bg-white p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Monthly Plan</p>
+                        <p className="text-xs text-gray-500">Pay as you go</p>
+                      </div>
+                      <p className="text-xl font-bold text-gray-900">$40<span className="text-sm font-normal text-gray-500">/mo</span></p>
                     </div>
                     <button
-                      onClick={() => launchSubscription(SUB_URL)}
-                      className="w-full sm:w-auto rounded-md bg-indigo-600 px-5 py-3 text-white text-base font-semibold shadow-sm hover:bg-indigo-500"
+                      onClick={() => launchSubscription(SUB_MONTHLY_URL, 'monthly')}
+                      className="w-full rounded-md bg-white border border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-600 hover:bg-indigo-50 transition-colors"
                     >
-                      Activate Subscription
+                      Subscribe Monthly
+                    </button>
+                  </div>
+                  
+                  {/* Annual Option */}
+                  <div className="rounded-lg border border-gray-300 bg-white p-4">
+                    <div className="flex items-center justify-between mb-3">
+                      <div>
+                        <p className="text-sm font-medium text-gray-900">Annual Plan <span className="text-xs text-indigo-600 font-semibold">• Save $80</span></p>
+                        <p className="text-xs text-gray-500">Save 2 months</p>
+                      </div>
+                      <p className="text-xl font-bold text-gray-900">$400<span className="text-sm font-normal text-gray-500">/yr</span></p>
+                    </div>
+                    <button
+                      onClick={() => launchSubscription(SUB_ANNUAL_URL, 'annual')}
+                      className="w-full rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors"
+                    >
+                      Subscribe Annually
                     </button>
                   </div>
                 </div>

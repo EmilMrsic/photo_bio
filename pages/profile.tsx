@@ -18,6 +18,7 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [messageType, setMessageType] = useState<'success' | 'error'>('success');
+  const [subscriptionStatus, setSubscriptionStatus] = useState<'active' | 'expired' | null>(null);
 
   useEffect(() => {
     if (member) {
@@ -29,6 +30,23 @@ export default function ProfilePage() {
         practice: member?.data?.customFields?.practice || '',
         practiceType: member?.data?.customFields?.['practice-type'] || '',
       });
+
+      // Fetch provider data from Xano to get subscription status
+      const fetchProviderData = async () => {
+        try {
+          const email = member?.data?.auth?.email;
+          if (email) {
+            const provider = await providerAPI.getProviderByEmail(email);
+            if (provider) {
+              setSubscriptionStatus(provider.subscription_status || null);
+            }
+          }
+        } catch (error) {
+          console.error('Error fetching provider data:', error);
+        }
+      };
+      
+      fetchProviderData();
     }
   }, [member]);
 
@@ -260,6 +278,28 @@ export default function ProfilePage() {
                   <span className="text-sm font-medium text-gray-700">Member Since:</span>
                   <span className="ml-2 text-sm text-gray-900">
                     {member?.data?.createdAt ? new Date(member.data.createdAt).toLocaleDateString() : 'N/A'}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-sm font-medium text-gray-700">Subscription Status:</span>
+                  <span className="ml-2 inline-flex items-center text-sm">
+                    {subscriptionStatus === 'active' ? (
+                      <>
+                        <span className="flex items-center">
+                          <span className="inline-block w-2 h-2 bg-green-500 rounded-full mr-2"></span>
+                          <span className="text-green-700 font-medium">Active</span>
+                        </span>
+                      </>
+                    ) : subscriptionStatus === 'expired' ? (
+                      <>
+                        <span className="flex items-center">
+                          <span className="inline-block w-2 h-2 bg-red-500 rounded-full mr-2"></span>
+                          <span className="text-red-700 font-medium">Inactive</span>
+                        </span>
+                      </>
+                    ) : (
+                      <span className="text-gray-500">Loading...</span>
+                    )}
                   </span>
                 </div>
               </div>

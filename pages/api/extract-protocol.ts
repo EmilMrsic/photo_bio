@@ -24,6 +24,9 @@ const protocolRouter = JSON.parse(
 const protocolDefinitions = JSON.parse(
   fs.readFileSync(path.join(protocolLogicPath, 'protocol_definitions.json'), 'utf-8')
 );
+const neuroradiantDefinitions = JSON.parse(
+  fs.readFileSync(path.join(protocolLogicPath, 'neuroradiant_definitions.json'), 'utf-8')
+);
 
 export default async function handler(
   req: NextApiRequest,
@@ -43,6 +46,12 @@ export default async function handler(
     const userSelectedCondition = Array.isArray(fields.condition)
       ? fields.condition[0]
       : fields.condition;
+
+    // Optional helmet type (light | neuroradiant1070)
+    const userHelmetType = Array.isArray(fields.helmetType)
+      ? fields.helmetType[0]
+      : fields.helmetType;
+    const helmetType = typeof userHelmetType === 'string' ? userHelmetType : 'light';
 
     // Require explicit consent
     const consentField = Array.isArray(fields.consent) ? fields.consent[0] : fields.consent;
@@ -75,18 +84,34 @@ export default async function handler(
     const prompt = `You are a deterministic resolver that reads a neurofeedback PDF and extracts condition and protocol index.
 
 Goal:
-From the PDF extract a condition and a number between 1 and 24 from the Eyes Open Brain Map section.
+From the PDF extract a condition and the FIRST protocol number from the Eyes Open Brain Map section.
 
 Rules:
 1. Temperature 0
 2. Do not guess
 3. Output JSON only
 4. Stable key order
+5. CRITICAL: Protocol index MUST be between 1 and 24 inclusive
+6. IGNORE page numbers, dates, and any numbers outside the protocol table
 
-PDF extraction:
-1. Find the Eyes Open Brain Map section on page 10
-2. Parse a single integer 1 through 24 from the "Protocol #" column
-3. Parse a condition string that must match one of these: MEMORY, FOCUS, ANXIETY, DEPRESSION, SLEEP, HEAD INJURY, PEAK PERFORMANCE, OCD, CHRONIC PAIN, SPECTRUM, HEADACHE, STROKE, CHRONIC FATIGUE, ADDICTIONS
+PDF extraction steps:
+1. Find the section titled "Protocols from Eyes Open Brain Map" (usually on page 10)
+2. Look for the table with header "Possible Two Channel Protocols"
+3. Find the "Protocol #" column in this table
+4. Extract ONLY the FIRST number from the "Protocol #" column
+5. This number MUST be a single or double digit between 1-24
+6. If you see numbers like 42, 638, etc., those are NOT protocol numbers - keep looking
+7. Protocol numbers in brain maps are typically: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, or 24
+
+Example protocol table format:
+Protocol #    Left Protocol         Right Protocol        Sites
+4             2-7d 15-18u          2-7d 13-15u          F3/F4
+18            9-11d 15-20u         15-20d 9-11u         P3/P4
+
+In this example: Extract "4" (the FIRST protocol number)
+
+Condition extraction:
+Parse a condition string that must match EXACTLY one of these: MEMORY, FOCUS, ANXIETY, DEPRESSION, SLEEP, HEAD INJURY, PEAK PERFORMANCE, OCD, CHRONIC PAIN, SPECTRUM, HEADACHE, STROKE, CHRONIC FATIGUE, ADDICTIONS
 
 Output schema (JSON only, no markdown):
 {
@@ -98,7 +123,7 @@ PDF TEXT:
 ${pdfText}
 
 EXAMPLE OUTPUT:
-{"condition":"DEPRESSION","index":8}`;
+{"condition":"DEPRESSION","index":4}`;
 
     // Call OpenAI API
     const response = await openai.chat.completions.create({
@@ -186,7 +211,20 @@ EXAMPLE OUTPUT:
       });
     }
 
-    const phases = protocolDefinitions[String(protocolId)] || [];
+    const isNeuroradiant = helmetType === 'neuroradiant1070';
+    let phases = protocolDefinitions[String(protocolId)] || [];
+    let nrPayload: any = null;
+    if (isNeuroradiant) {
+      const def = neuroradiantDefinitions[String(protocolId)];
+      if (def) {
+        nrPayload = {
+          protocol_id: protocolId,
+          cycles: def.cycles,
+          steps: def.steps,
+        };
+      }
+    }
+
     console.log('✅ SUCCESS! Returning Protocol ID:', protocolId);
     console.log('   Number of phases:', phases.length);
     console.log('═══════════════════════════════════════════════');
@@ -195,13 +233,26 @@ EXAMPLE OUTPUT:
     fs.unlinkSync(file.filepath);
 
     // Return success JSON
-    return res.status(200).json({
-      ok: true,
-      condition,
-      index,
-      protocol_id: protocolId,
-      phases
-    });
+    return res.status(200).json(
+      isNeuroradiant
+        ? {
+            ok: true,
+            condition,
+            index,
+            protocol_id: protocolId,
+            phases,
+            helmet_type: helmetType,
+            neuroradiant: nrPayload,
+          }
+        : {
+            ok: true,
+            condition,
+            index,
+            protocol_id: protocolId,
+            phases,
+            helmet_type: helmetType,
+          }
+    );
 
   } catch (error) {
     console.error('Error extracting protocol:', error);

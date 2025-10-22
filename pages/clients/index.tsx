@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/router';
 import { useMemberstack } from '../../hooks/useMemberstack';
 import ProtocolModal from '../../components/ProtocolModal';
+import ProtocolModal1070 from '../../components/ProtocolModal1070';
 
 export default function ClientsPage() {
   const router = useRouter();
@@ -16,8 +17,11 @@ export default function ClientsPage() {
   const [loading, setLoading] = useState(true);
   const [providerId, setProviderId] = useState<number | null>(null);
   const [showProtocolModal, setShowProtocolModal] = useState(false);
+  const [showProtocol1070Modal, setShowProtocol1070Modal] = useState(false);
   const [selectedProtocol, setSelectedProtocol] = useState<PBMProtocol | null>(null);
   const [selectedClient, setSelectedClient] = useState<Client | null>(null);
+  const [nrSteps, setNrSteps] = useState<any[]>([]);
+  const [nrCycles, setNrCycles] = useState<number>(1);
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [highlightedClientId, setHighlightedClientId] = useState<number | null>(null);
 
@@ -158,6 +162,75 @@ export default function ClientsPage() {
     }
     setSelectedClient(client);
     setSelectedProtocol(protocol);
+
+    // Enhanced debug logging
+    console.log('🔍 Protocol check (client list):', {
+      has_helmet_type: !!protocol.helmet_type,
+      helmet_type_value: protocol.helmet_type,
+      has_nr_steps_json: !!(protocol as any).nr_steps_json,
+      nr_steps_json_is_array: Array.isArray((protocol as any).nr_steps_json),
+      nr_steps_json_length: (protocol as any).nr_steps_json?.length,
+      nr_protocol_id: (protocol as any).nr_protocol_id,
+      client_nfb_protocol: client?.nfb_protocol
+    });
+
+    // Branch by saved helmet type or label fallback
+    if (protocol.helmet_type === 'neuroradiant1070' && Array.isArray((protocol as any).nr_steps_json)) {
+      setNrSteps((protocol as any).nr_steps_json);
+      setNrCycles((protocol as any).nr_cycles || 1);
+      setShowProtocol1070Modal(true);
+      return;
+    }
+
+    // Fallback: if helmet_type is 1070 but nr_steps_json is missing, use nr_protocol_id
+    if (protocol.helmet_type === 'neuroradiant1070') {
+      const protocolId = (protocol as any).nr_protocol_id || client?.nfb_protocol;
+      if (protocolId && protocolId >= 1 && protocolId <= 12) {
+        try {
+          const defs = require('../../protocol-logic/neuroradiant_definitions.json');
+          const def = defs[String(protocolId)];
+          console.log('📚 Loading from neuroradiant_definitions.json (client list):', {
+            protocolId,
+            definition: def,
+            steps: def?.steps
+          });
+          if (def && Array.isArray(def.steps)) {
+            console.log('✅ Using definition steps for protocol', protocolId);
+            setNrSteps(def.steps);
+            setNrCycles(def.cycles || 1);
+            setShowProtocol1070Modal(true);
+            return;
+          }
+        } catch (e) {
+          console.error('Failed to load NR1070 definition:', e);
+        }
+      }
+    }
+
+    const isNrByLabel = typeof protocol.label === 'string' && /(?:NR\s*1070|Neuroradiant\s*1070)/i.test(protocol.label);
+    if (isNrByLabel) {
+      try {
+        const idMatch = protocol.label.match(/P(\d+)/i);
+        let mappedId = idMatch ? parseInt(idMatch[1], 10) : NaN;
+        // Fallback: if label lacks P{ID}, try client.nfb_protocol
+        if (isNaN(mappedId) && client?.nfb_protocol && client.nfb_protocol >= 1 && client.nfb_protocol <= 12) {
+          mappedId = client.nfb_protocol;
+        }
+        if (!isNaN(mappedId)) {
+          const defs = require('../../protocol-logic/neuroradiant_definitions.json');
+          const def = defs[String(mappedId)];
+          if (def && Array.isArray(def.steps)) {
+            setNrSteps(def.steps);
+            setNrCycles(def.cycles || 1);
+            setShowProtocol1070Modal(true);
+            return;
+          }
+        }
+      } catch (e) {
+        // fall through to 3-card
+      }
+    }
+
     setShowProtocolModal(true);
   };
 
@@ -332,8 +405,13 @@ export default function ClientsPage() {
                             <div className="font-medium text-gray-900">
                               {protocol.label}
                             </div>
-                            <div className="text-xs text-gray-500">
-                              {protocol.created_at ? new Date(protocol.created_at).toLocaleDateString() : 'N/A'}
+                            <div className="text-xs text-gray-500 flex items-center gap-3">
+                              <span>{protocol.created_at ? new Date(protocol.created_at).toLocaleDateString() : 'N/A'}</span>
+                              {protocol.helmet_type && (
+                                <span className="inline-flex items-center px-2 py-0.5 rounded-full border text-[10px] font-medium bg-gray-50 text-gray-700 border-gray-200">
+                                  Helmet: {protocol.helmet_type === 'neuroradiant1070' ? 'Neuroradiant 1070' : 'Light'}
+                                </span>
+                              )}
                             </div>
                             <button
                               onClick={() => handleViewProtocol(client, protocol)}
@@ -377,14 +455,25 @@ export default function ClientsPage() {
 
       {/* Protocol Modal */}
       {selectedProtocol && selectedClient && (
-        <ProtocolModal
-          isOpen={showProtocolModal}
-          onClose={() => setShowProtocolModal(false)}
-          protocolNumber={0} // Not used when protocolLabel is provided
-          clientName={`${selectedClient.first_name} ${selectedClient.last_name}`}
-          phases={getProtocolPhases(selectedProtocol)}
-          protocolLabel={selectedProtocol.label}
-        />
+        <>
+          <ProtocolModal
+            isOpen={showProtocolModal}
+            onClose={() => setShowProtocolModal(false)}
+            protocolNumber={0}
+            clientName={`${selectedClient.first_name} ${selectedClient.last_name}`}
+            phases={getProtocolPhases(selectedProtocol)}
+            protocolLabel={selectedProtocol.label}
+          />
+          <ProtocolModal1070
+            isOpen={showProtocol1070Modal}
+            onClose={() => setShowProtocol1070Modal(false)}
+            protocolNumber={(selectedProtocol as any).nr_protocol_id || 0}
+            clientName={`${selectedClient.first_name} ${selectedClient.last_name}`}
+            steps={nrSteps}
+            cycles={nrCycles}
+            protocolLabel={selectedProtocol.label}
+          />
+        </>
       )}
     </Layout>
   );

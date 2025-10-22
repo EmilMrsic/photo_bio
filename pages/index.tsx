@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react'
 import PurchaseFlow from '../components/PurchaseFlow'
 import { useMemberstack } from '../hooks/useMemberstack'
 import { useRouter } from 'next/router'
+import Footer from '../components/Footer'
 
 const navigation = [
   { name: 'Features', href: '#features' },
@@ -209,8 +210,15 @@ export default function Products() {
             <div className="flex h-16 justify-between">
               <div className="flex">
                 <div className="flex shrink-0 items-center">
-                  <Link href="/" className="text-2xl font-bold" style={{ color: '#4F47E6' }}>
-                    TPBM Protocols
+                  <Link href="/" className="flex items-center space-x-3">
+                    <img 
+                      src="/tpbm250.png" 
+                      alt="tPBM Protocols Logo" 
+                      className="h-10 w-auto"
+                    />
+                    <span className="text-2xl font-bold" style={{ color: '#4F47E6' }}>
+                      tPBM Protocols
+                    </span>
                   </Link>
                 </div>
                 <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -332,7 +340,7 @@ export default function Products() {
                   QEEG-driven photobiomodulation for better brain health
                 </h1>
                 <p className="mt-6 text-xl leading-8 text-gray-700">
-                  Providers, upload your brain map and get instant TPBM protocols.
+                  Providers, upload your brain map and get instant tPBM protocols.
                 </p>
 
                 {/* CTA Buttons */}
@@ -374,7 +382,7 @@ export default function Products() {
                           <iframe
                             class="absolute top-0 left-0 w-full h-full border-0"
                             src="https://customer-f57etvnofv3kxoyh.cloudflarestream.com/4ca36ee41542c9962b04eb69e77e4790/iframe?autoplay=true"
-                            title="Dr. Guy Annunziata explains QEEG-guided TPBM"
+                            title="Dr. Guy Annunziata explains QEEG-guided tPBM"
                             allow="accelerometer; gyroscope; autoplay; encrypted-media; picture-in-picture"
                             allowfullscreen
                           ></iframe>
@@ -406,7 +414,7 @@ export default function Products() {
           </div>
         </div>
 
-        {/* Why QEEG-Guided TPBM Section */}
+        {/* Why QEEG-Guided tPBM Section */}
         <div id="features" className="bg-white py-16 sm:py-24">
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16 items-center">
@@ -415,7 +423,7 @@ export default function Products() {
                 <div className="aspect-square w-full overflow-hidden rounded-2xl shadow-xl">
                   <img
                     src="/main-images/tpbm helmet on desk.png"
-                    alt="TPBM helmet on desk"
+                    alt="tPBM helmet on desk"
                     className="h-full w-full object-cover"
                   />
                 </div>
@@ -424,10 +432,10 @@ export default function Products() {
               {/* Right Column - Text */}
               <div>
                 <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                  Precision-Guided Brain Stimulation Starts Here
+                  Precision-Directed Photobiomodulation Starts Here
                 </h2>
                 <p className="mt-6 text-lg leading-8 text-gray-700">
-                  Traditional photobiomodulation treats every patient the same. BrainCore's QEEG-Driven Protocols change that. Using brain mapping, we identify regions that would benefit from tPBM—then translate that data into customized tPBM stimulation protocols.
+                  Traditional photobiomodulation addresses every client the same. BrainCore's QEEG-Driven Protocols change that. Using brain mapping, we identify regions that would benefit from tPBM—then translate that data into customized tPBM stimulation protocols.
                 </p>
                 <p className="mt-4 text-lg leading-8 text-gray-700">
                   Whether the goal is improving focus, emotional balance, or stress resilience, this approach delivers truly personalized care that integrates seamlessly with neurofeedback training.
@@ -581,7 +589,7 @@ export default function Products() {
           <div className="mx-auto max-w-7xl px-6 lg:px-8">
             <div className="mx-auto max-w-2xl text-center mb-16">
               <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                How QEEG-Guided TPBM Works
+                How QEEG-Guided tPBM Works
               </h2>
             </div>
 
@@ -648,7 +656,7 @@ export default function Products() {
                     Get custom settings for the client
                   </h3>
                   <p className="text-base text-gray-600">
-                    The TPBM helmet delivers gentle near-infrared light to specific regions to restore balance and boost performance.
+                    The tPBM helmet delivers gentle near-infrared light to specific regions to restore balance and boost performance.
                   </p>
                 </div>
               </div>
@@ -670,7 +678,7 @@ export default function Products() {
                 Real Data. Real Change.
               </h2>
               <p className="mt-6 text-lg leading-8 text-gray-700">
-                By pairing TPBM with neurofeedback, providers see faster progress in focus, mood regulation, and cognitive recovery. The synergy between light-based stimulation and brain self-training produces measurable improvements that clients can feel.
+                By pairing tPBM with neurofeedback, providers see faster progress in focus, mood regulation, and cognitive recovery. The synergy between light-based stimulation and brain self-training produces measurable improvements that clients can feel.
               </p>
             </div>
 
@@ -681,7 +689,7 @@ export default function Products() {
                 <div className="aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-2xl ring-1 ring-gray-900/10 lg:sticky lg:top-32">
                   <img
                     src="/main-images/redlight frm helmet.webp"
-                    alt="Red light therapy from TPBM helmet"
+                    alt="Red light therapy from tPBM helmet"
                     className="h-full w-full object-cover"
                   />
                 </div>
@@ -779,22 +787,8 @@ export default function Products() {
             {/* Removed standalone flow above pricing per new design */}
             <div className="mx-auto max-w-2xl text-center mb-4">
               <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                Choose the TPBM Solution That Fits Your Practice
+                Choose the tPBM Solution That Fits Your Practice
               </h2>
-            </div>
-            <div className="flex justify-end mb-12">
-              <button
-                onClick={() => {
-                  if (typeof window !== 'undefined') {
-                    localStorage.removeItem('purchaseFlowState')
-                    setShowV1Flow(false)
-                    setShowV2Flow(false)
-                  }
-                }}
-                className="text-xs text-gray-500 hover:text-gray-700 underline"
-              >
-                Reset purchase flow
-              </button>
             </div>
 
             {/* Neuronics Partnership Section */}
@@ -834,7 +828,7 @@ export default function Products() {
                         }}
                         className="mt-5 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
                       >
-                        Buy Helmet
+                        Buy Neuronics LIGHT
                       </button>
                     </div>
                     <div className="sm:col-span-2 p-6 flex flex-col">
@@ -843,8 +837,9 @@ export default function Products() {
                       <p className="mt-1 text-sm text-gray-600">At-Home tPBM System</p>
                       <ul className="mt-4 space-y-2">
                         <li className="flex items-start"><CheckIcon className="h-5 w-5 text-indigo-600 mt-0.5" aria-hidden="true" /><span className="ml-3 text-sm text-gray-700">Reliable, full-coverage near-infrared stimulation</span></li>
+                        <li className="flex items-start"><CheckIcon className="h-5 w-5 text-indigo-600 mt-0.5" aria-hidden="true" /><span className="ml-3 text-sm text-gray-700">Enhanced cerebral blood flow and mitochondrial activation</span></li>
                         <li className="flex items-start"><CheckIcon className="h-5 w-5 text-indigo-600 mt-0.5" aria-hidden="true" /><span className="ml-3 text-sm text-gray-700">Unlimited client usability</span></li>
-                        <li className="flex items-start"><CheckIcon className="h-5 w-5 text-indigo-600 mt-0.5" aria-hidden="true" /><span className="ml-3 text-sm text-gray-700">Direct drop-shipping to your office or patient’s home</span></li>
+                        <li className="flex items-start"><CheckIcon className="h-5 w-5 text-indigo-600 mt-0.5" aria-hidden="true" /><span className="ml-3 text-sm text-gray-700">Direct drop-shipping to your office or patient's home</span></li>
                         <li className="flex items-start"><CheckIcon className="h-5 w-5 text-indigo-600 mt-0.5" aria-hidden="true" /><span className="ml-3 text-sm text-gray-700">Designed for everyday use and simple setup</span></li>
                         <li className="flex items-start"><CheckIcon className="h-5 w-5 text-indigo-600 mt-0.5" aria-hidden="true" /><span className="ml-3 text-sm text-gray-700">Ideal for providers offering patients an affordable at-home training option</span></li>
                         <li className="flex items-start"><CheckIcon className="h-5 w-5 text-indigo-600 mt-0.5" aria-hidden="true" /><span className="ml-3 text-sm text-gray-700">Supports focus, emotional balance, and stress resilience</span></li>
@@ -887,7 +882,7 @@ export default function Products() {
                         }}
                         className="mt-5 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
                       >
-                        Buy Helmet
+                        Buy Neuradiant 1070
                       </button>
                     </div>
                     <div className="sm:col-span-2 p-6 flex flex-col">
@@ -925,9 +920,49 @@ export default function Products() {
                   <div className="p-5 flex flex-col">
                     <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wide">QEEG-Driven Protocol Subscription Package</p>
                     <h3 className="mt-2 text-2xl font-bold text-gray-900">Activate Your Plan</h3>
-                    <p className="mt-3 text-sm text-gray-600">Annual subscription for unlimited QEEG uploads to generate fully personalized tPBM protocols. Unlimited clients and continuous protocol updates.</p>
-                    <div className="mt-4" />
-                    <a href="https://buy.stripe.com/aFabJ13rU10tgL24nwe3e00" className="inline-flex justify-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500">Activate Subscription</a>
+                    <p className="mt-3 text-sm text-gray-600">Choose monthly or annual subscription for unlimited QEEG uploads to generate fully personalized tPBM protocols. Unlimited clients and continuous protocol updates.</p>
+                    
+                    {/* Pricing Options */}
+                    <div className="mt-6 space-y-3">
+                      {/* Monthly Option */}
+                      <div className="rounded-lg border-2 border-gray-300 p-4 hover:border-indigo-500 transition-colors">
+                        <div className="flex items-center justify-between mb-2">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">Monthly Plan</p>
+                            <p className="text-xs text-gray-500">Pay as you go</p>
+                          </div>
+                          <p className="text-2xl font-bold text-gray-900">$40<span className="text-sm font-normal text-gray-500">/mo</span></p>
+                        </div>
+                        <a 
+                          href="https://buy.stripe.com/4gMaEX0fI7oReCU1bke3e03" 
+                          className="block w-full text-center rounded-md bg-white border-2 border-indigo-600 px-4 py-2 text-sm font-semibold text-indigo-600 hover:bg-indigo-50 transition-colors"
+                        >
+                          Subscribe Monthly
+                        </a>
+                      </div>
+                      
+                      {/* Annual Option */}
+                      <div className="rounded-lg border-2 border-indigo-600 p-4 bg-indigo-50 relative">
+                        <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                          <span className="bg-indigo-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                            BEST VALUE - Save $80
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between mb-2 mt-2">
+                          <div>
+                            <p className="text-sm font-medium text-gray-900">Annual Plan</p>
+                            <p className="text-xs text-gray-600">Save 2 months</p>
+                          </div>
+                          <p className="text-2xl font-bold text-gray-900">$400<span className="text-sm font-normal text-gray-500">/yr</span></p>
+                        </div>
+                        <a 
+                          href="https://buy.stripe.com/9B63cv0fI24x0M4g6ee3e04" 
+                          className="block w-full text-center rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-700 transition-colors"
+                        >
+                          Subscribe Annually
+                        </a>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
@@ -970,7 +1005,7 @@ export default function Products() {
                   <CheckIcon className="h-6 w-6 text-indigo-600 shrink-0 mt-1" />
                   <div className="ml-3">
                     <span className="font-semibold text-gray-900">Seamless Fulfillment</span>
-                    <span className="text-gray-700"> – Direct drop-shipping to clients or your practice</span>
+                    <span className="text-gray-700"> – Direct shipping to your practice or clients</span>
                   </div>
                 </li>
                 <li className="flex items-start">
@@ -1037,9 +1072,10 @@ export default function Products() {
                     <td className="px-6 py-4 text-sm text-gray-700">
                       <div className="space-y-1">
                         <div className="flex items-center"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" /><span>Unlimited client usability</span></div>
-                        <div className="flex items-center"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" /><span>Direct drop‑shipping to office or patient’s home</span></div>
+                        <div className="flex items-center"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" /><span>Direct drop‑shipping to office or patient's home</span></div>
                         <div className="flex items-center"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" /><span>Designed for everyday use and simple setup</span></div>
                         <div className="flex items-center"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" /><span>Full‑coverage stimulation across the scalp</span></div>
+                        <div className="flex items-center"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0" /><span>Enhanced cerebral blood flow and mitochondrial activation</span></div>
                       </div>
                     </td>
                     <td className="px-6 py-4 text-sm text-gray-700">Built for BrainCore providers who want to extend care beyond the office—ideal for patients continuing tPBM sessions at home under provider guidance.</td>
@@ -1225,6 +1261,9 @@ export default function Products() {
             </DialogPanel>
           </div>
         </Dialog>
+
+        {/* Footer */}
+        <Footer />
       </div>
     </>
   )
