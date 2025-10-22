@@ -6,6 +6,7 @@ import { useState, useEffect } from 'react'
 import PurchaseFlow from '../components/PurchaseFlow'
 import { useMemberstack } from '../hooks/useMemberstack'
 import { useRouter } from 'next/router'
+import Footer from '../components/Footer'
 
 const navigation = [
   { name: 'Features', href: '#features' },
@@ -209,8 +210,15 @@ export default function Products() {
             <div className="flex h-16 justify-between">
               <div className="flex">
                 <div className="flex shrink-0 items-center">
-                  <Link href="/" className="text-2xl font-bold" style={{ color: '#4F47E6' }}>
-                    tPBM Protocols
+                  <Link href="/" className="flex items-center space-x-3">
+                    <img 
+                      src="/tpbm250.png" 
+                      alt="tPBM Protocols Logo" 
+                      className="h-10 w-auto"
+                    />
+                    <span className="text-2xl font-bold" style={{ color: '#4F47E6' }}>
+                      tPBM Protocols
+                    </span>
                   </Link>
                 </div>
                 <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -424,10 +432,10 @@ export default function Products() {
               {/* Right Column - Text */}
               <div>
                 <h2 className="text-3xl font-bold tracking-tight text-gray-900 sm:text-4xl">
-                  Precision-Guided Brain Stimulation Starts Here
+                  Precision-Directed Photobiomodulation Starts Here
                 </h2>
                 <p className="mt-6 text-lg leading-8 text-gray-700">
-                  Traditional photobiomodulation treats every patient the same. BrainCore's QEEG-Driven Protocols change that. Using brain mapping, we identify regions that would benefit from tPBM—then translate that data into customized tPBM stimulation protocols.
+                  Traditional photobiomodulation addresses every client the same. BrainCore's QEEG-Driven Protocols change that. Using brain mapping, we identify regions that would benefit from tPBM—then translate that data into customized tPBM stimulation protocols.
                 </p>
                 <p className="mt-4 text-lg leading-8 text-gray-700">
                   Whether the goal is improving focus, emotional balance, or stress resilience, this approach delivers truly personalized care that integrates seamlessly with neurofeedback training.
@@ -820,7 +828,7 @@ export default function Products() {
                         }}
                         className="mt-5 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
                       >
-                        Buy Helmet
+                        Buy Neuronics LIGHT
                       </button>
                     </div>
                     <div className="sm:col-span-2 p-6 flex flex-col">
@@ -874,7 +882,7 @@ export default function Products() {
                         }}
                         className="mt-5 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
                       >
-                        Buy Helmet
+                        Buy Neuradiant 1070
                       </button>
                     </div>
                     <div className="sm:col-span-2 p-6 flex flex-col">
@@ -997,7 +1005,7 @@ export default function Products() {
                   <CheckIcon className="h-6 w-6 text-indigo-600 shrink-0 mt-1" />
                   <div className="ml-3">
                     <span className="font-semibold text-gray-900">Seamless Fulfillment</span>
-                    <span className="text-gray-700"> – Direct drop-shipping to clients or your practice</span>
+                    <span className="text-gray-700"> – Direct shipping to your practice or clients</span>
                   </div>
                 </li>
                 <li className="flex items-start">
@@ -1253,6 +1261,9 @@ export default function Products() {
             </DialogPanel>
           </div>
         </Dialog>
+
+        {/* Footer */}
+        <Footer />
       </div>
     </>
   )

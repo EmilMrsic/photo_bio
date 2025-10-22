@@ -40,7 +40,7 @@ export function useMemberstack() {
     // Wait for Memberstack to be initialized
     const initializeMemberstack = async () => {
       let attempts = 0;
-      const maxAttempts = 50; // 5 seconds max wait
+      const maxAttempts = 20; // 2 seconds max wait (reduced for faster dev experience)
       
       while (attempts < maxAttempts) {
         if (typeof window !== 'undefined' && (window as any).memberstack) {
@@ -55,7 +55,7 @@ export function useMemberstack() {
       }
       
       if (attempts === maxAttempts) {
-        console.error('Memberstack failed to initialize');
+        console.warn('Memberstack not available - running without authentication');
         setLoading(false);
       }
     };

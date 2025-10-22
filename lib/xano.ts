@@ -967,9 +967,9 @@ export const pbmProtocolAPI = {
       }
       let label = `Map ${existingCount + 1}`;
       if (extras?.helmet_type === 'neuroradiant1070') {
-        label = `Map ${existingCount + 1} – NR1070`;
+        label = `Map ${existingCount + 1} - Neuroradiant 1070`;
       } else if (extras?.helmet_type === 'light') {
-        label = `Map ${existingCount + 1} – Light`;
+        label = `Map ${existingCount + 1} - Light`;
       }
 
       const protocolData: Omit<PBMProtocol, 'id' | 'created_at'> = {
@@ -989,6 +989,13 @@ export const pbmProtocolAPI = {
         nr_steps_json: extras?.nr_steps,
       };
 
+      console.log('🔍 Creating protocol with data:', {
+        ...protocolData,
+        nr_steps_json_preview: protocolData.nr_steps_json ? 
+          `Array(${protocolData.nr_steps_json.length})` : 
+          undefined
+      });
+
       const response = await fetch(`${XANO_API_BASE}/pbm_protocols`, {
         method: 'POST',
         headers,
@@ -997,10 +1004,19 @@ export const pbmProtocolAPI = {
 
       if (!response.ok) {
         const errorText = await response.text();
+        console.error('❌ Failed to create protocol. Response:', errorText);
         throw new Error(`Failed to create PBM protocol: ${errorText}`);
       }
 
-      return await response.json();
+      const savedProtocol = await response.json();
+      console.log('✅ Protocol saved. Returned data:', {
+        ...savedProtocol,
+        nr_steps_json_preview: savedProtocol.nr_steps_json ? 
+          `Array(${savedProtocol.nr_steps_json.length})` : 
+          undefined
+      });
+
+      return savedProtocol;
     } catch (error) {
       console.error('Error creating PBM protocol:', error);
       throw error;

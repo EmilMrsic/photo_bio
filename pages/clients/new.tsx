@@ -255,7 +255,9 @@ export default function NewClientPage() {
                         nr_cycles: result.neuroradiant.cycles,
                         nr_steps: result.neuroradiant.steps,
                       }
-                    : undefined
+                    : {
+                        helmet_type: result.helmet_type || 'light',
+                      }
                 );
                 console.log('PBM protocol saved successfully to Xano');
               } catch (pbmError) {

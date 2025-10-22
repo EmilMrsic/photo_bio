@@ -163,6 +163,17 @@ export default function ClientsPage() {
     setSelectedClient(client);
     setSelectedProtocol(protocol);
 
+    // Enhanced debug logging
+    console.log('🔍 Protocol check (client list):', {
+      has_helmet_type: !!protocol.helmet_type,
+      helmet_type_value: protocol.helmet_type,
+      has_nr_steps_json: !!(protocol as any).nr_steps_json,
+      nr_steps_json_is_array: Array.isArray((protocol as any).nr_steps_json),
+      nr_steps_json_length: (protocol as any).nr_steps_json?.length,
+      nr_protocol_id: (protocol as any).nr_protocol_id,
+      client_nfb_protocol: client?.nfb_protocol
+    });
+
     // Branch by saved helmet type or label fallback
     if (protocol.helmet_type === 'neuroradiant1070' && Array.isArray((protocol as any).nr_steps_json)) {
       setNrSteps((protocol as any).nr_steps_json);
@@ -171,7 +182,32 @@ export default function ClientsPage() {
       return;
     }
 
-    const isNrByLabel = typeof protocol.label === 'string' && /NR1070/i.test(protocol.label);
+    // Fallback: if helmet_type is 1070 but nr_steps_json is missing, use nr_protocol_id
+    if (protocol.helmet_type === 'neuroradiant1070') {
+      const protocolId = (protocol as any).nr_protocol_id || client?.nfb_protocol;
+      if (protocolId && protocolId >= 1 && protocolId <= 12) {
+        try {
+          const defs = require('../../protocol-logic/neuroradiant_definitions.json');
+          const def = defs[String(protocolId)];
+          console.log('📚 Loading from neuroradiant_definitions.json (client list):', {
+            protocolId,
+            definition: def,
+            steps: def?.steps
+          });
+          if (def && Array.isArray(def.steps)) {
+            console.log('✅ Using definition steps for protocol', protocolId);
+            setNrSteps(def.steps);
+            setNrCycles(def.cycles || 1);
+            setShowProtocol1070Modal(true);
+            return;
+          }
+        } catch (e) {
+          console.error('Failed to load NR1070 definition:', e);
+        }
+      }
+    }
+
+    const isNrByLabel = typeof protocol.label === 'string' && /(?:NR\s*1070|Neuroradiant\s*1070)/i.test(protocol.label);
     if (isNrByLabel) {
       try {
         const idMatch = protocol.label.match(/P(\d+)/i);

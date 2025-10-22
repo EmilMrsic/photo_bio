@@ -6,6 +6,11 @@ export default function Document() {
       <Head>
         <link rel="icon" href="/favicon.ico" />
         <script src="https://unpkg.com/@lottiefiles/lottie-player@latest/dist/lottie-player.js"></script>
+        <script 
+          data-memberstack-app={process.env.NEXT_PUBLIC_MEMBERSTACK_APP_ID || "app_placeholder"} 
+          src="https://static.memberstack.com/scripts/v2/memberstack.js" 
+          async
+        ></script>
       </Head>
       <body className="min-h-screen font-sans antialiased">
         <Main />

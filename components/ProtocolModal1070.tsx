@@ -19,6 +19,25 @@ interface ProtocolModal1070Props {
 }
 
 export default function ProtocolModal1070({ isOpen, onClose, protocolNumber, clientName, steps, cycles, protocolLabel }: ProtocolModal1070Props) {
+  // Debug logging to track quadrant values
+  React.useEffect(() => {
+    if (isOpen && steps) {
+      console.log('🔍 ProtocolModal1070 - Steps received:', {
+        protocolNumber,
+        protocolLabel,
+        cycles,
+        stepCount: steps.length,
+        steps: steps.map((s, idx) => ({
+          step: idx + 1,
+          quadrant: s.quadrant,
+          pulse_hz: s.pulse_hz,
+          intensity_percent: s.intensity_percent,
+          duration_min: s.duration_min
+        }))
+      });
+    }
+  }, [isOpen, steps, protocolNumber, protocolLabel, cycles]);
+
   if (!isOpen) return null;
 
   return (
@@ -61,9 +80,6 @@ export default function ProtocolModal1070({ isOpen, onClose, protocolNumber, cli
                     <div className="mt-2 flex items-center justify-center gap-2">
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-indigo-50 text-indigo-700 border border-indigo-200">Helmet: Neuroradiant 1070</span>
                       <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-purple-50 text-purple-700 border border-purple-200">Cycles: {cycles}</span>
-                      {protocolNumber ? (
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold bg-sky-50 text-sky-700 border border-sky-200">Mapped #{protocolNumber}</span>
-                      ) : null}
                     </div>
                   </div>
 

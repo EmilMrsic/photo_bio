@@ -213,8 +213,28 @@ export default function ClientDetailPage() {
   };
 
   const handleViewProtocol = (protocol: any) => {
+    console.log('📋 handleViewProtocol called with:', {
+      helmet_type: protocol.helmet_type,
+      nr_protocol_id: protocol.nr_protocol_id,
+      label: protocol.label,
+      nr_steps_json: protocol.nr_steps_json,
+      nr_cycles: protocol.nr_cycles
+    });
+
+    // Enhanced debug logging
+    console.log('🔍 Protocol check:', {
+      has_helmet_type: !!protocol.helmet_type,
+      helmet_type_value: protocol.helmet_type,
+      has_nr_steps_json: !!protocol.nr_steps_json,
+      nr_steps_json_is_array: Array.isArray(protocol.nr_steps_json),
+      nr_steps_json_length: protocol.nr_steps_json?.length,
+      nr_protocol_id: protocol.nr_protocol_id,
+      client_nfb_protocol: client?.nfb_protocol
+    });
+
     // If protocol was saved for 1070, show 4-card modal using packed steps
     if (protocol.helmet_type === 'neuroradiant1070' && Array.isArray(protocol.nr_steps_json) && protocol.nr_steps_json.length >= 4) {
+      console.log('✅ Using saved NR1070 protocol with steps:', protocol.nr_steps_json);
       setModalProtocolNumber(protocol.nr_protocol_id || 0);
       setModalProtocolLabel(protocol.label);
       setNrSteps(protocol.nr_steps_json);
@@ -223,8 +243,35 @@ export default function ClientDetailPage() {
       return;
     }
 
-    // Label-based fallback for older NR1070 protocols: "Map N – NR1070 – P{ID}"
-    if (typeof protocol.label === 'string' && /NR1070/i.test(protocol.label)) {
+    // Fallback: if helmet_type is 1070 but nr_steps_json is missing, use nr_protocol_id
+    if (protocol.helmet_type === 'neuroradiant1070') {
+      const protocolId = protocol.nr_protocol_id || client?.nfb_protocol;
+      if (protocolId && protocolId >= 1 && protocolId <= 12) {
+        try {
+          const defs = require('../../protocol-logic/neuroradiant_definitions.json');
+          const def = defs[String(protocolId)];
+          console.log('📚 Loading from neuroradiant_definitions.json:', {
+            protocolId,
+            definition: def,
+            steps: def?.steps
+          });
+          if (def && Array.isArray(def.steps)) {
+            console.log('✅ Using definition steps for protocol', protocolId);
+            setModalProtocolNumber(protocolId);
+            setModalProtocolLabel(protocol.label);
+            setNrSteps(def.steps);
+            setNrCycles(def.cycles || 1);
+            setShowProtocol1070Modal(true);
+            return;
+          }
+        } catch (e) {
+          console.error('Failed to load NR1070 definition:', e);
+        }
+      }
+    }
+
+    // Label-based fallback for older NR1070 protocols: "Map N – NR1070 – P{ID}" or "Map N - Neuroradiant 1070"
+    if (typeof protocol.label === 'string' && /(?:NR\s*1070|Neuroradiant\s*1070)/i.test(protocol.label)) {
       try {
         const match = protocol.label.match(/P(\d+)/i);
         let mappedId = match ? parseInt(match[1], 10) : NaN;
@@ -236,7 +283,13 @@ export default function ClientDetailPage() {
           // Load local definitions and open 4-card modal
           const defs = require('../../protocol-logic/neuroradiant_definitions.json');
           const def = defs[String(mappedId)];
+          console.log('📚 Loading from neuroradiant_definitions.json:', {
+            mappedId,
+            definition: def,
+            steps: def?.steps
+          });
           if (def && Array.isArray(def.steps)) {
+            console.log('✅ Using definition steps for protocol', mappedId);
             setModalProtocolNumber(mappedId);
             setModalProtocolLabel(protocol.label);
             setNrSteps(def.steps);
@@ -421,7 +474,9 @@ export default function ClientDetailPage() {
                   nr_cycles: result.neuroradiant.cycles,
                   nr_steps: result.neuroradiant.steps,
                 }
-              : undefined
+              : {
+                  helmet_type: result.helmet_type || 'light',
+                }
           );
           console.log('PBM protocol saved successfully');
 
@@ -464,10 +519,16 @@ export default function ClientDetailPage() {
       setModalProtocolNumber(protocol);
       setModalProtocolLabel(label || '');
       if (result.helmet_type === 'neuroradiant1070' && result.neuroradiant?.steps) {
+        console.log('✅ Protocol extraction complete - NR1070:', {
+          protocol_id: protocol,
+          cycles: result.neuroradiant.cycles,
+          steps: result.neuroradiant.steps
+        });
         setNrSteps(result.neuroradiant.steps);
         setNrCycles(result.neuroradiant.cycles || 1);
         setShowProtocol1070Modal(true);
       } else {
+        console.log('✅ Protocol extraction complete - Standard 3-card');
         setModalProtocolPhases(phases);
         setShowProtocolModal(true);
       }
@@ -666,7 +727,7 @@ export default function ClientDetailPage() {
                               </p>
                               <div className="mt-1 flex items-center space-x-4">
                                 <p className="text-sm text-gray-500">
-                                  <span className="font-medium">Condition:</span> {condition}
+                                  {condition}
                                 </p>
                                 {protocol.helmet_type && (
                                   <p className="text-sm text-gray-500">
