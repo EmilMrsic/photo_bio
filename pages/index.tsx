@@ -348,7 +348,7 @@ export default function Products() {
             <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-center">
               {/* Left Side - Content */}
               <div className="w-full lg:w-1/2 order-1 lg:order-1">
-                <h1 className="text-5xl font-bold tracking-tight text-gray-900 sm:text-6xl lg:text-6xl">
+                <h1 className="text-5xl font-bold tracking-tight text-gray-900 sm:text-6xl lg:text-6xl break-words">
                   QEEG-driven photobiomodulation for better brain health
                 </h1>
                 <p className="mt-6 text-xl sm:text-2xl leading-8 text-gray-700">
@@ -974,7 +974,7 @@ export default function Products() {
                       {/* Annual Option */}
                       <div className="rounded-lg border-2 border-indigo-600 p-4 bg-indigo-50 relative">
                         <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                          <span className="bg-indigo-600 text-white text-xs font-semibold px-3 py-1 rounded-full">
+                          <span className="bg-indigo-600 text-white text-xs font-semibold px-3 py-1 rounded-full whitespace-nowrap">
                             BEST VALUE - Save $80
                           </span>
                         </div>
