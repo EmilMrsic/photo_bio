@@ -94,14 +94,14 @@ export default function PurchaseFlow({ variant = 'full', defaultOpen, id }: Purc
   const headerCheck = useCallback((done: boolean) => (
     <span
       aria-hidden
-      className={`mr-4 inline-flex h-8 w-8 items-center justify-center rounded-md border ${
+      className={`mr-3 sm:mr-4 flex-shrink-0 inline-flex h-7 w-7 sm:h-8 sm:w-8 items-center justify-center rounded-md border ${
         done ? 'bg-green-500 border-green-500 text-white' : 'bg-white border-gray-300'
       }`}
     >
       {done ? (
-        <CheckIcon className="h-5 w-5" />
+        <CheckIcon className="h-4 w-4 sm:h-5 sm:w-5" />
       ) : (
-        <span className="block h-3 w-3 rounded-sm bg-transparent" />
+        <span className="block h-2.5 w-2.5 sm:h-3 sm:w-3 rounded-sm bg-transparent" />
       )}
     </span>
   ), []);
@@ -156,9 +156,9 @@ export default function PurchaseFlow({ variant = 'full', defaultOpen, id }: Purc
   const SUB_ANNUAL_URL = 'https://buy.stripe.com/9B63cv0fI24x0M4g6ee3e04';
 
   const sectionBase = 'rounded-2xl bg-white shadow-md ring-1 ring-gray-200';
-  const headerBase = 'w-full text-left flex items-center px-6 py-5';
-  const titleBase = 'text-xl sm:text-2xl font-bold text-gray-900';
-  const subTitle = 'mt-2 text-base text-gray-600';
+  const headerBase = 'w-full text-left flex items-start px-4 sm:px-6 py-4 sm:py-5';
+  const titleBase = 'text-lg sm:text-xl lg:text-2xl font-bold text-gray-900';
+  const subTitle = 'mt-1 sm:mt-2 text-sm sm:text-base text-gray-600';
 
   const isClient = mounted;
 
@@ -195,21 +195,21 @@ export default function PurchaseFlow({ variant = 'full', defaultOpen, id }: Purc
                 <p className={subTitle}>Copy your discount code and purchase your helmet.</p>
               </div>
             </DisclosureButton>
-            <DisclosurePanel className="px-6 pb-6 pt-2">
+            <DisclosurePanel className="px-4 sm:px-6 pb-6 pt-2">
               {/* Sub-step A */}
-              <div className="pl-8">
+              <div className="pl-4 sm:pl-8">
                 <div className="text-sm font-semibold text-gray-900">A. Copy Discount Code</div>
-                <div className="mt-2 flex gap-3 max-w-xl">
+                <div className="mt-2 flex flex-col sm:flex-row gap-2 sm:gap-3 max-w-xl">
                   <input
                     type="text"
                     readOnly
                     value={DISCOUNT_CODE}
-                    className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-4 py-2 border text-lg font-mono tracking-widest"
+                    className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-3 sm:px-4 py-2 border text-base sm:text-lg font-mono tracking-widest"
                     aria-label="Discount code"
                   />
                   <button
                     onClick={onCopy}
-                    className="rounded-md bg-indigo-600 px-4 py-2 text-white text-sm font-semibold shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    className="rounded-md bg-indigo-600 px-4 py-2 text-white text-sm font-semibold shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 whitespace-nowrap"
                   >
                     Copy Code
                   </button>
@@ -218,14 +218,14 @@ export default function PurchaseFlow({ variant = 'full', defaultOpen, id }: Purc
               </div>
 
               {/* Sub-step B */}
-              <div className="pl-8 mt-6">
+              <div className="pl-4 sm:pl-8 mt-6">
                 <div className="text-sm font-semibold text-gray-900">B. Purchase Helmet</div>
                 <p className="mt-1 text-sm text-gray-600">
-                  Step 1B: Purchase your Portable 1070 nm Helmet. Use the discount code above — it applies to as many helmets as you’d like to purchase.
+                  Step 1B: Purchase your Portable 1070 nm Helmet. Use the discount code above — it applies to as many helmets as you'd like to purchase.
                 </p>
                 <button
                   onClick={() => launchHelmet(V1_URL, 'v1')}
-                  className="mt-4 w-full sm:w-auto rounded-md bg-indigo-600 px-5 py-3 text-white text-base font-semibold shadow-sm hover:bg-indigo-500"
+                  className="mt-4 w-full sm:w-auto rounded-md bg-indigo-600 px-5 py-3 text-white text-sm sm:text-base font-semibold shadow-sm hover:bg-indigo-500"
                 >
                   Purchase your Portable 1070 nm Helmet
                 </button>
@@ -251,21 +251,21 @@ export default function PurchaseFlow({ variant = 'full', defaultOpen, id }: Purc
                 <p className={subTitle}>Copy your discount code and purchase your helmet.</p>
               </div>
             </DisclosureButton>
-            <DisclosurePanel className="px-6 pb-6 pt-2">
+            <DisclosurePanel className="px-4 sm:px-6 pb-6 pt-2">
               {/* Sub-step A */}
-              <div className="pl-8">
+              <div className="pl-4 sm:pl-8">
                 <div className="text-sm font-semibold text-gray-900">A. Copy Discount Code</div>
-                <div className="mt-2 flex gap-3 max-w-xl">
+                <div className="mt-2 flex flex-col sm:flex-row gap-2 sm:gap-3 max-w-xl">
                   <input
                     type="text"
                     readOnly
                     value={DISCOUNT_CODE}
-                    className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-4 py-2 border text-lg font-mono tracking-widest"
+                    className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-3 sm:px-4 py-2 border text-base sm:text-lg font-mono tracking-widest"
                     aria-label="Discount code"
                   />
                   <button
                     onClick={onCopy}
-                    className="rounded-md bg-indigo-600 px-4 py-2 text-white text-sm font-semibold shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    className="rounded-md bg-indigo-600 px-4 py-2 text-white text-sm font-semibold shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 whitespace-nowrap"
                   >
                     Copy Code
                   </button>
@@ -274,14 +274,14 @@ export default function PurchaseFlow({ variant = 'full', defaultOpen, id }: Purc
               </div>
 
               {/* Sub-step B */}
-              <div className="pl-8 mt-6">
+              <div className="pl-4 sm:pl-8 mt-6">
                 <div className="text-sm font-semibold text-gray-900">B. Purchase Helmet</div>
                 <p className="mt-1 text-sm text-gray-600">
-                  Step 1B: Purchase your Neuradiant 1070 nm Helmet. Use the discount code above — it applies to as many helmets as you’d like to purchase.
+                  Step 1B: Purchase your Neuradiant 1070 nm Helmet. Use the discount code above — it applies to as many helmets as you'd like to purchase.
                 </p>
                 <button
                   onClick={() => launchHelmet(V2_URL, 'v2')}
-                  className="mt-4 w-full sm:w-auto rounded-md bg-indigo-600 px-5 py-3 text-white text-base font-semibold shadow-sm hover:bg-indigo-500"
+                  className="mt-4 w-full sm:w-auto rounded-md bg-indigo-600 px-5 py-3 text-white text-sm sm:text-base font-semibold shadow-sm hover:bg-indigo-500"
                 >
                   Purchase your Neuradiant 1070 nm Helmet
                 </button>
@@ -306,8 +306,8 @@ export default function PurchaseFlow({ variant = 'full', defaultOpen, id }: Purc
                 <p className={subTitle}>Activate your annual plan to unlock protocols and updates.</p>
               </div>
             </DisclosureButton>
-            <DisclosurePanel className="px-6 pb-6 pt-2">
-              <div className="pl-8">
+            <DisclosurePanel className="px-4 sm:px-6 pb-6 pt-2">
+              <div className="pl-4 sm:pl-8">
                 <div className="text-sm font-semibold text-gray-900">A. Activate Subscription</div>
                 <p className="mt-1 text-sm text-gray-600">
                   Choose monthly or annual subscription for unlimited QEEG uploads to generate fully personalized tPBM protocols. Unlimited clients and continuous protocol updates.
