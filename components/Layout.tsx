@@ -76,7 +76,7 @@ export default function Layout({ children, title }: LayoutProps) {
                     alt="tPBM Protocols Logo" 
                     className="h-10 w-auto"
                   />
-                  <span className="text-xl font-bold" style={{ color: '#4F47E6' }}>
+                  <span className="text-lg sm:text-xl font-bold" style={{ color: '#4F47E6' }}>
                     tPBM Protocols
                   </span>
                 </Link>
@@ -140,7 +140,7 @@ export default function Layout({ children, title }: LayoutProps) {
       {title && (
         <header className="bg-white shadow">
           <div className="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-            <h1 className="text-3xl font-bold text-gray-900">{title}</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">{title}</h1>
           </div>
         </header>
       )}

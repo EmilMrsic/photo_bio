@@ -328,12 +328,12 @@ export default function ClientsPage() {
       <div className="bg-white shadow sm:rounded-lg">
         <div className="px-4 py-5 sm:p-6">
           <div className="sm:flex sm:items-center sm:justify-between">
-            <h2 className="text-lg leading-6 font-medium text-gray-900">Client List</h2>
+            <h2 className="text-xl sm:text-2xl leading-6 font-bold text-gray-900">Client List</h2>
             <div className="mt-3 sm:mt-0 sm:ml-4">
               <button
                 type="button"
                 onClick={() => router.push('/clients/new')}
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500"
+                className="inline-flex items-center px-5 py-3 border border-transparent text-base sm:text-lg font-semibold rounded-lg shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 w-full sm:w-auto justify-center"
               >
                 Add New Client
               </button>
@@ -360,11 +360,99 @@ export default function ClientsPage() {
                   d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"
                 />
               </svg>
-              <h3 className="mt-2 text-sm font-medium text-gray-900">No clients</h3>
-              <p className="mt-1 text-sm text-gray-500">Get started by adding a new client.</p>
+              <h3 className="mt-2 text-sm sm:text-base font-medium text-gray-900">No clients</h3>
+              <p className="mt-1 text-sm sm:text-base text-gray-500">Get started by adding a new client.</p>
             </div>
           ) : (
-            <table className="min-w-full divide-y divide-gray-200 mt-4">
+            <>
+              {/* Mobile Card View */}
+              <div className="sm:hidden mt-4 space-y-4">
+                {clients.map(client => {
+                  const protocol = client.id ? clientProtocols[client.id] : null;
+                  const displayLastInitial = (client.last_initial || client.last_name?.charAt(0) || '').toUpperCase();
+                  const clientSlug = `${client.first_name}-${displayLastInitial}-${client.id}`.toLowerCase().replace(/\s+/g, '-');
+                  const isHighlighted = highlightedClientId === client.id;
+                  const isDimmed = highlightedClientId !== null && !isHighlighted;
+
+                  return (
+                    <div
+                      key={client.id}
+                      id={`client-row-${client.id}`}
+                      className={`transition-all duration-500 rounded-lg border-2 p-5 ${
+                        isHighlighted
+                          ? 'bg-indigo-50 border-indigo-500 shadow-lg scale-[1.02]'
+                          : isDimmed
+                          ? 'opacity-30 border-gray-200 bg-white'
+                          : 'border-gray-200 bg-white hover:border-gray-300'
+                      }`}
+                    >
+                      {/* Client Name */}
+                      <div className="mb-3">
+                        <Link href={`/clients/${clientSlug}`} className="text-xl font-bold text-indigo-600 hover:text-indigo-900">
+                          {client.first_name} {displayLastInitial && `${displayLastInitial}.`}
+                        </Link>
+                      </div>
+
+                      {/* BrainCore ID */}
+                      <div className="mb-3 flex items-center">
+                        <span className="text-sm font-medium text-gray-500 mr-2">BrainCore ID:</span>
+                        <span className="text-base font-semibold text-gray-900">{client.braincore_id || '—'}</span>
+                      </div>
+
+                      {/* Protocol Section */}
+                      {protocol ? (
+                        <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                          <div className="mb-2">
+                            <span className="text-sm font-medium text-gray-500 block mb-1">Last Protocol:</span>
+                            <span className="text-lg font-bold text-gray-900">{protocol.label}</span>
+                          </div>
+                          <div className="flex flex-wrap items-center gap-2 mb-3 text-sm text-gray-600">
+                            <span>{protocol.created_at ? new Date(protocol.created_at).toLocaleDateString() : 'N/A'}</span>
+                            {protocol.helmet_type && (
+                              <span className="inline-flex items-center px-2.5 py-1 rounded-full border text-xs font-medium bg-white text-gray-700 border-gray-300">
+                                Helmet: {protocol.helmet_type === 'neuroradiant1070' ? 'Neuroradiant 1070' : 'Light'}
+                              </span>
+                            )}
+                          </div>
+                          <button
+                            onClick={() => handleViewProtocol(client, protocol)}
+                            className={`w-full transition-all ${
+                              highlightedClientId === client.id
+                                ? 'text-lg px-4 py-3 bg-indigo-600 text-white rounded-lg shadow-lg hover:bg-indigo-700 animate-bounce font-semibold'
+                                : 'text-base px-4 py-2.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 font-medium'
+                            }`}
+                          >
+                            View Protocol
+                          </button>
+                        </div>
+                      ) : (
+                        <div className="mb-4 p-4 bg-gray-50 rounded-lg border border-gray-200">
+                          <span className="text-base text-gray-400">No protocol available</span>
+                        </div>
+                      )}
+
+                      {/* Action Buttons */}
+                      <div className="flex gap-3">
+                        <Link
+                          href={`/clients/${clientSlug}`}
+                          className="flex-1 text-center px-4 py-2.5 text-base font-medium text-indigo-600 bg-white border-2 border-indigo-600 rounded-lg hover:bg-indigo-50 transition-colors"
+                        >
+                          View Details
+                        </Link>
+                        <Link
+                          href={`/clients/${clientSlug}/edit`}
+                          className="flex-1 text-center px-4 py-2.5 text-base font-medium text-white bg-indigo-600 border-2 border-indigo-600 rounded-lg hover:bg-indigo-700 transition-colors"
+                        >
+                          Edit
+                        </Link>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Desktop Table View */}
+              <table className="hidden sm:table min-w-full divide-y divide-gray-200 mt-4">
               <thead className="bg-gray-50">
                 <tr>
                   <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Name</th>
@@ -449,6 +537,7 @@ export default function ClientsPage() {
                 })}
               </tbody>
             </table>
+            </>
           )}
         </div>
       </div>
