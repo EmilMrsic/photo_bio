@@ -1,7 +1,7 @@
 import Head from 'next/head'
 import Link from 'next/link'
 import { Disclosure, DisclosureButton, DisclosurePanel, Dialog, DialogPanel, DialogTitle } from '@headlessui/react'
-import { Bars3Icon, XMarkIcon, CheckIcon } from '@heroicons/react/24/outline'
+import { Bars3Icon, XMarkIcon, CheckIcon, ChevronDownIcon } from '@heroicons/react/24/outline'
 import { useState, useEffect } from 'react'
 import PurchaseFlow from '../components/PurchaseFlow'
 import { useMemberstack } from '../hooks/useMemberstack'
@@ -1069,7 +1069,121 @@ export default function Products() {
             <h3 className="text-2xl font-bold text-gray-900 mb-8 text-center">
               Neuronics tPBM Package Comparison
             </h3>
-            <div className="overflow-x-auto shadow-lg rounded-xl">
+            
+            {/* Mobile Accordion View */}
+            <div className="sm:hidden space-y-3">
+              {/* Neuronics Light Package */}
+              <Disclosure>
+                {({ open }) => (
+                  <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <DisclosureButton className="flex w-full items-center justify-between px-4 py-4 text-left">
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 overflow-hidden rounded-md flex-shrink-0">
+                          <img src="/main-images/side view of helmet.jpg" alt="Neuronics Light helmet" className="h-full w-full object-cover" />
+                        </div>
+                        <span className="text-base font-semibold text-gray-900">Neuronics Light Package</span>
+                      </div>
+                      <ChevronDownIcon className={`h-5 w-5 text-indigo-600 transition-transform ${open ? 'rotate-180' : ''}`} />
+                    </DisclosureButton>
+                    <DisclosurePanel className="px-4 pb-4 pt-2 space-y-4 border-t border-gray-100">
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-700 mb-1">Description</h4>
+                        <p className="text-sm text-gray-600">Affordable at-home tPBM system delivering reliable, full-coverage near‑infrared stimulation.</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Includes</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-start"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0 mt-0.5" /><span className="text-sm text-gray-600">Unlimited client usability</span></div>
+                          <div className="flex items-start"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0 mt-0.5" /><span className="text-sm text-gray-600">Direct drop‑shipping to office or patient's home</span></div>
+                          <div className="flex items-start"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0 mt-0.5" /><span className="text-sm text-gray-600">Designed for everyday use and simple setup</span></div>
+                          <div className="flex items-start"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0 mt-0.5" /><span className="text-sm text-gray-600">Full‑coverage stimulation across the scalp</span></div>
+                          <div className="flex items-start"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0 mt-0.5" /><span className="text-sm text-gray-600">Enhanced cerebral blood flow and mitochondrial activation</span></div>
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-700 mb-1">Best For</h4>
+                        <p className="text-sm text-gray-600">Built for BrainCore providers who want to extend care beyond the office—ideal for patients continuing tPBM sessions at home under provider guidance.</p>
+                      </div>
+                    </DisclosurePanel>
+                  </div>
+                )}
+              </Disclosure>
+
+              {/* Neuronics Neuroradiant 1070 Package */}
+              <Disclosure>
+                {({ open }) => (
+                  <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <DisclosureButton className="flex w-full items-center justify-between px-4 py-4 text-left">
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 overflow-hidden rounded-md flex-shrink-0">
+                          <img src="/main-images/Neuradiant Helmet.png" alt="Neuroradiant 1070 helmet" className="h-full w-full object-cover" />
+                        </div>
+                        <span className="text-base font-semibold text-gray-900">Neuronics Neuroradiant 1070 Package</span>
+                      </div>
+                      <ChevronDownIcon className={`h-5 w-5 text-indigo-600 transition-transform ${open ? 'rotate-180' : ''}`} />
+                    </DisclosureButton>
+                    <DisclosurePanel className="px-4 pb-4 pt-2 space-y-4 border-t border-gray-100">
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-700 mb-1">Description</h4>
+                        <p className="text-sm text-gray-600">Advanced clinical‑grade system featuring targeted 1070 nm near‑infrared for deeper brain stimulation.</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Includes</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-start"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0 mt-0.5" /><span className="text-sm text-gray-600">Research‑grade tPBM for in‑office use</span></div>
+                          <div className="flex items-start"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0 mt-0.5" /><span className="text-sm text-gray-600">Targeted 1070 nm stimulation reaching deeper structures</span></div>
+                          <div className="flex items-start"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0 mt-0.5" /><span className="text-sm text-gray-600">Enhanced cerebral blood flow and mitochondrial activation</span></div>
+                          <div className="flex items-start"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0 mt-0.5" /><span className="text-sm text-gray-600">Engineered for reliability, repeatability, and precision control</span></div>
+                          <div className="flex items-start"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0 mt-0.5" /><span className="text-sm text-gray-600">4‑Quadrant control with precision targeting</span></div>
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-700 mb-1">Best For</h4>
+                        <p className="text-sm text-gray-600">Designed for clinical environments that demand the highest precision—brain recovery, performance optimization, and advanced neurofeedback integration.</p>
+                      </div>
+                    </DisclosurePanel>
+                  </div>
+                )}
+              </Disclosure>
+
+              {/* QEEG-Driven Protocol Subscription Package */}
+              <Disclosure>
+                {({ open }) => (
+                  <div className="bg-white rounded-xl shadow-lg overflow-hidden">
+                    <DisclosureButton className="flex w-full items-center justify-between px-4 py-4 text-left">
+                      <div className="flex items-center gap-3">
+                        <div className="h-12 w-12 overflow-hidden rounded-md flex-shrink-0">
+                          <img src="/main-images/tpbm protocol setting on ios app.webp" alt="Subscription app" className="h-full w-full object-cover" />
+                        </div>
+                        <span className="text-base font-semibold text-gray-900">QEEG‑Driven Protocol Subscription Package</span>
+                      </div>
+                      <ChevronDownIcon className={`h-5 w-5 text-indigo-600 transition-transform ${open ? 'rotate-180' : ''}`} />
+                    </DisclosureButton>
+                    <DisclosurePanel className="px-4 pb-4 pt-2 space-y-4 border-t border-gray-100">
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-700 mb-1">Description</h4>
+                        <p className="text-sm text-gray-600">Annual subscription that generates fully personalized tPBM protocols from unlimited QEEG uploads.</p>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-700 mb-2">Includes</h4>
+                        <div className="space-y-2">
+                          <div className="flex items-start"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0 mt-0.5" /><span className="text-sm text-gray-600">Unlimited QEEG uploads</span></div>
+                          <div className="flex items-start"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0 mt-0.5" /><span className="text-sm text-gray-600">Unlimited clients</span></div>
+                          <div className="flex items-start"><CheckIcon className="h-4 w-4 text-indigo-600 mr-2 shrink-0 mt-0.5" /><span className="text-sm text-gray-600">All protocol updates included</span></div>
+                        </div>
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-semibold text-gray-700 mb-1">Best For</h4>
+                        <p className="text-sm text-gray-600">Clinics offering customized, data‑driven light therapy tailored to each client.</p>
+                      </div>
+                    </DisclosurePanel>
+                  </div>
+                )}
+              </Disclosure>
+            </div>
+
+            {/* Desktop Table View */}
+            <div className="hidden sm:block overflow-x-auto shadow-lg rounded-xl">
               <table className="min-w-full divide-y divide-gray-200 bg-white">
                 <thead className="bg-indigo-600">
                   <tr>
