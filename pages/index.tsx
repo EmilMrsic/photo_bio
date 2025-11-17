@@ -970,7 +970,7 @@ export default function Products() {
                         <div className="text-xl font-bold text-gray-900">{formatCurrency(priceV2Disc)}</div>
                       </div>
                       <a
-                        href="https://buy.stripe.com/cNi4gz8MecJb3Yg7zIe3e02"
+                        href="https://www.neuronic.online/products/neuradiant-1070-non-invasive-photobiomodulation-helmet"
                         target="_blank"
                         rel="noopener noreferrer"
                         aria-label="Purchase Neuroradiant 1070 Helmet"
