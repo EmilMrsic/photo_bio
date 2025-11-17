@@ -920,14 +920,12 @@ export default function Products() {
                         <div className="text-sm text-gray-400 line-through">{formatCurrency(priceV1)} − 10%</div>
                         <div className="text-xl font-bold text-gray-900">{formatCurrency(priceV1Disc)}</div>
                       </div>
-                      <a
-                        href="https://www.neuronic.online/black-friday-2025-neuronics-biggest-sale-of-the-year-save-up-to-30-percent"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={() => setShowV1Flow(!showV1Flow)}
                         className="mt-5 inline-block rounded-md bg-gradient-to-r from-orange-600 to-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-orange-700 hover:to-red-700 transition-all"
                       >
-                        🎉 View Black Friday Deal
-                      </a>
+                        {showV1Flow ? '✓ View Purchase Steps' : '🎉 Get Black Friday Deal'}
+                      </button>
                     </div>
                     <div className="sm:col-span-2 p-6 flex flex-col">
                       <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wide">Neuronics Light Package</p>
@@ -950,7 +948,7 @@ export default function Products() {
                   </div>
                   {showV1Flow && (
                     <div id="flow-v1" className="p-6 border-t border-gray-100">
-                      <PurchaseFlow variant="helmet-v1" defaultOpen id="flow-v1" />
+                      <PurchaseFlow variant="helmet-v1" defaultOpen id="flow-v1" blackFriday={true} />
                       <div className="mt-6">
                         <PurchaseFlow variant="subscription" />
                       </div>
@@ -969,15 +967,13 @@ export default function Products() {
                         <div className="text-sm text-gray-400 line-through">{formatCurrency(priceV2)} − 10%</div>
                         <div className="text-xl font-bold text-gray-900">{formatCurrency(priceV2Disc)}</div>
                       </div>
-                      <a
-                        href="https://www.neuronic.online/products/neuradiant-1070-non-invasive-photobiomodulation-helmet"
-                        target="_blank"
-                        rel="noopener noreferrer"
+                      <button
+                        onClick={() => setShowV2Flow(!showV2Flow)}
                         aria-label="Purchase Neuroradiant 1070 Helmet"
                         className="mt-5 inline-block rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-all"
                       >
-                        Get Started
-                      </a>
+                        {showV2Flow ? '✓ View Purchase Steps' : 'Get Started'}
+                      </button>
                     </div>
                     <div className="sm:col-span-2 p-6 flex flex-col">
                       <p className="text-sm font-semibold text-indigo-600 uppercase tracking-wide">Neuronics Neuroradiant 1070 Package</p>
