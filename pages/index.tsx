@@ -345,7 +345,7 @@ export default function Products() {
         {/* Black Friday Banner */}
         <a
           href="#pricing"
-          className="block bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 hover:from-orange-700 hover:via-red-700 hover:to-orange-700 transition-all cursor-pointer mt-16"
+          className="block bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 hover:from-orange-700 hover:via-red-700 hover:to-orange-700 transition-all cursor-pointer fixed top-16 left-0 right-0 z-40"
         >
           <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
             <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
@@ -367,7 +367,7 @@ export default function Products() {
         </a>
 
         {/* New Hero Section - Split Layout with Video */}
-        <div className="relative bg-gradient-to-br from-blue-50 via-white to-blue-50">
+        <div className="relative bg-gradient-to-br from-blue-50 via-white to-blue-50 pt-32">
           <div className="mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-8">
             <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-center">
               {/* Left Side - Content */}
@@ -873,7 +873,7 @@ export default function Products() {
                       <svg className="h-5 w-5 text-indigo-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
-                      <span className="font-medium">No codes needed — your savings are applied automatically when you order through your BrainCore provider link</span>
+                      <span className="font-medium">Use code <span className="font-bold">BRAINCORE</span> for an additional 10% off when you order</span>
                     </div>
                     <div className="flex justify-center">
                       <a
@@ -970,13 +970,13 @@ export default function Products() {
                         <div className="text-xl font-bold text-gray-900">{formatCurrency(priceV2Disc)}</div>
                       </div>
                       <a
-                        href="https://www.neuronic.online/black-friday-2025-neuronics-biggest-sale-of-the-year-save-up-to-30-percent"
+                        href="https://buy.stripe.com/cNi4gz8MecJb3Yg7zIe3e02"
                         target="_blank"
                         rel="noopener noreferrer"
-                        aria-label="View Black Friday Deal for Neuroradiant 1070 Helmet"
-                        className="mt-5 inline-block rounded-md bg-gradient-to-r from-orange-600 to-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-orange-700 hover:to-red-700 transition-all"
+                        aria-label="Purchase Neuroradiant 1070 Helmet"
+                        className="mt-5 inline-block rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-all"
                       >
-                        🎉 View Black Friday Deal
+                        Get Started
                       </a>
                     </div>
                     <div className="sm:col-span-2 p-6 flex flex-col">
