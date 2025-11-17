@@ -845,11 +845,24 @@ export default function Products() {
                     <p className="text-base sm:text-lg text-gray-800 leading-relaxed text-center mb-4">
                       As an <span className="font-semibold text-indigo-700">official BrainCore partner</span>, you receive an <span className="font-bold text-indigo-700">additional 10% provider discount</span> stacked on top of their Black Friday pricing.
                     </p>
-                    <div className="flex items-center justify-center gap-2 text-sm sm:text-base text-gray-700 bg-indigo-50 rounded-lg py-3 px-4 border border-indigo-200">
+                    <div className="flex items-center justify-center gap-2 text-sm sm:text-base text-gray-700 bg-indigo-50 rounded-lg py-3 px-4 border border-indigo-200 mb-6">
                       <svg className="h-5 w-5 text-indigo-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                       <span className="font-medium">No codes needed — your savings are applied automatically when you order through your BrainCore provider link</span>
+                    </div>
+                    <div className="flex justify-center">
+                      <a
+                        href="https://www.neuronic.online/black-friday-2025-neuronics-biggest-sale-of-the-year-save-up-to-30-percent"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-orange-600 to-red-600 px-6 py-3 text-base font-semibold text-white shadow-lg hover:from-orange-700 hover:to-red-700 transition-all hover:scale-105"
+                      >
+                        View Black Friday Sale
+                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
+                        </svg>
+                      </a>
                     </div>
                   </div>
                 </div>
