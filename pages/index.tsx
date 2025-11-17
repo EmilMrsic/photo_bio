@@ -821,6 +821,41 @@ export default function Products() {
               </h2>
             </div>
 
+            {/* Black Friday Partner Announcement */}
+            <div className="mx-auto max-w-4xl mb-8">
+              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 p-8 shadow-lg ring-2 ring-orange-200">
+                {/* Decorative corner accent */}
+                <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-gradient-to-br from-orange-400 to-red-500 opacity-20 blur-2xl"></div>
+                
+                <div className="relative">
+                  <div className="flex items-center justify-center mb-3">
+                    <span className="inline-flex items-center rounded-full bg-gradient-to-r from-orange-600 to-red-600 px-4 py-1.5 text-sm font-bold text-white shadow-md">
+                      🎉 Black Friday Partner Savings
+                    </span>
+                  </div>
+                  
+                  <h3 className="text-center text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
+                    Stack Your Savings This Black Friday
+                  </h3>
+                  
+                  <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-sm">
+                    <p className="text-base sm:text-lg text-gray-800 leading-relaxed text-center mb-4">
+                      Neuronic is running their <span className="font-bold text-orange-700">biggest sale of the year</span> with up to <span className="font-bold text-orange-700">30% off</span> select tPBM systems.
+                    </p>
+                    <p className="text-base sm:text-lg text-gray-800 leading-relaxed text-center mb-4">
+                      As an <span className="font-semibold text-indigo-700">official BrainCore partner</span>, you receive an <span className="font-bold text-indigo-700">additional 10% provider discount</span> stacked on top of their Black Friday pricing.
+                    </p>
+                    <div className="flex items-center justify-center gap-2 text-sm sm:text-base text-gray-700 bg-indigo-50 rounded-lg py-3 px-4 border border-indigo-200">
+                      <svg className="h-5 w-5 text-indigo-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                      </svg>
+                      <span className="font-medium">No codes needed — your savings are applied automatically when you order through your BrainCore provider link</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
             {/* Neuronics Partnership Section */}
             <div className="mx-auto max-w-4xl text-center mb-12 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 p-8 shadow-md ring-1 ring-indigo-200">
               <h3 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl lg:text-4xl mb-3">
