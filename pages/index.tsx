@@ -342,32 +342,8 @@ export default function Products() {
           </DisclosurePanel>
         </Disclosure>
 
-        {/* Black Friday Banner */}
-        <a
-          href="#pricing"
-          className="block bg-gradient-to-r from-orange-600 via-red-600 to-orange-600 hover:from-orange-700 hover:via-red-700 hover:to-orange-700 transition-all cursor-pointer fixed top-16 left-0 right-0 z-40"
-        >
-          <div className="mx-auto max-w-7xl px-4 py-3 sm:px-6 lg:px-8">
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-2 sm:gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-2xl animate-bounce">🎉</span>
-                <span className="text-white font-bold text-base sm:text-lg">
-                  Black Friday: Up to 30% OFF + 10% BrainCore Discount Stacked
-                </span>
-                <span className="text-2xl animate-bounce">🎉</span>
-              </div>
-              <span className="inline-flex items-center gap-1 rounded-full bg-white/20 backdrop-blur-sm px-3 py-1 text-xs sm:text-sm font-semibold text-white border border-white/30">
-                Click to View Deals
-                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                </svg>
-              </span>
-            </div>
-          </div>
-        </a>
-
         {/* New Hero Section - Split Layout with Video */}
-        <div className="relative bg-gradient-to-br from-blue-50 via-white to-blue-50 pt-32">
+        <div className="relative bg-gradient-to-br from-blue-50 via-white to-blue-50 pt-16">
           <div className="mx-auto max-w-7xl px-6 py-16 sm:py-24 lg:px-8">
             <div className="flex flex-col lg:flex-row gap-12 lg:gap-16 items-center">
               {/* Left Side - Content */}
@@ -845,54 +821,6 @@ export default function Products() {
               </h2>
             </div>
 
-            {/* Black Friday Partner Announcement */}
-            <div className="mx-auto max-w-4xl mb-8">
-              <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-amber-50 via-orange-50 to-red-50 p-8 shadow-lg ring-2 ring-orange-200">
-                {/* Decorative corner accent */}
-                <div className="absolute top-0 right-0 -mt-4 -mr-4 h-24 w-24 rounded-full bg-gradient-to-br from-orange-400 to-red-500 opacity-20 blur-2xl"></div>
-                
-                <div className="relative">
-                  <div className="flex items-center justify-center mb-3">
-                    <span className="inline-flex items-center rounded-full bg-gradient-to-r from-orange-600 to-red-600 px-4 py-1.5 text-sm font-bold text-white shadow-md">
-                      🎉 Black Friday Partner Savings
-                    </span>
-                  </div>
-                  
-                  <h3 className="text-center text-2xl sm:text-3xl font-bold text-gray-900 mb-4">
-                    Stack Your Savings This Black Friday
-                  </h3>
-                  
-                  <div className="bg-white/80 backdrop-blur-sm rounded-xl p-6 shadow-sm">
-                    <p className="text-base sm:text-lg text-gray-800 leading-relaxed text-center mb-4">
-                      Neuronic is running their <span className="font-bold text-orange-700">biggest sale of the year</span> with up to <span className="font-bold text-orange-700">30% off</span> select tPBM systems.
-                    </p>
-                    <p className="text-base sm:text-lg text-gray-800 leading-relaxed text-center mb-4">
-                      As an <span className="font-semibold text-indigo-700">official BrainCore partner</span>, you receive an <span className="font-bold text-indigo-700">additional 10% provider discount</span> stacked on top of their Black Friday pricing.
-                    </p>
-                    <div className="flex items-center justify-center gap-2 text-sm sm:text-base text-gray-700 bg-indigo-50 rounded-lg py-3 px-4 border border-indigo-200 mb-6">
-                      <svg className="h-5 w-5 text-indigo-600 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                      </svg>
-                      <span className="font-medium">Use code <span className="font-bold">BRAINCORE</span> for an additional 10% off when you order</span>
-                    </div>
-                    <div className="flex justify-center">
-                      <a
-                        href="https://www.neuronic.online/black-friday-2025-neuronics-biggest-sale-of-the-year-save-up-to-30-percent"
-                        target="_blank"
-                        rel="noopener noreferrer"
-                        className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-orange-600 to-red-600 px-6 py-3 text-base font-semibold text-white shadow-lg hover:from-orange-700 hover:to-red-700 transition-all hover:scale-105"
-                      >
-                        View Black Friday Sale
-                        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 7l5 5m0 0l-5 5m5-5H6" />
-                        </svg>
-                      </a>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
             {/* Neuronics Partnership Section */}
             <div className="mx-auto max-w-4xl text-center mb-12 rounded-2xl bg-gradient-to-br from-indigo-50 to-purple-50 p-8 shadow-md ring-1 ring-indigo-200">
               <h3 className="text-2xl font-bold tracking-tight text-gray-900 sm:text-3xl lg:text-4xl mb-3">
@@ -921,10 +849,16 @@ export default function Products() {
                         <div className="text-xl font-bold text-gray-900">{formatCurrency(priceV1Disc)}</div>
                       </div>
                       <button
-                        onClick={() => setShowV1Flow(!showV1Flow)}
-                        className="mt-5 inline-block rounded-md bg-gradient-to-r from-orange-600 to-red-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:from-orange-700 hover:to-red-700 transition-all"
+                        onClick={() => {
+                          setShowV1Flow(true)
+                          setTimeout(() => {
+                            const el = document.getElementById('flow-v1')
+                            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                          }, 0)
+                        }}
+                        className="mt-5 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
                       >
-                        {showV1Flow ? '✓ View Purchase Steps' : '🎉 Get Black Friday Deal'}
+                        Buy Neuronics LIGHT
                       </button>
                     </div>
                     <div className="sm:col-span-2 p-6 flex flex-col">
@@ -948,7 +882,7 @@ export default function Products() {
                   </div>
                   {showV1Flow && (
                     <div id="flow-v1" className="p-6 border-t border-gray-100">
-                      <PurchaseFlow variant="helmet-v1" defaultOpen id="flow-v1" blackFriday={true} />
+                      <PurchaseFlow variant="helmet-v1" defaultOpen id="flow-v1" />
                       <div className="mt-6">
                         <PurchaseFlow variant="subscription" />
                       </div>
@@ -968,11 +902,17 @@ export default function Products() {
                         <div className="text-xl font-bold text-gray-900">{formatCurrency(priceV2Disc)}</div>
                       </div>
                       <button
-                        onClick={() => setShowV2Flow(!showV2Flow)}
-                        aria-label="Purchase Neuroradiant 1070 Helmet"
-                        className="mt-5 inline-block rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500 transition-all"
+                        aria-label="Buy Neuroradiant 1070 Helmet"
+                        onClick={() => {
+                          setShowV2Flow(true)
+                          setTimeout(() => {
+                            const el = document.getElementById('flow-v2')
+                            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                          }, 0)
+                        }}
+                        className="mt-5 rounded-md bg-indigo-600 px-4 py-2 text-sm font-semibold text-white shadow-sm hover:bg-indigo-500"
                       >
-                        {showV2Flow ? '✓ View Purchase Steps' : 'Get Started'}
+                        Buy Neuradiant 1070
                       </button>
                     </div>
                     <div className="sm:col-span-2 p-6 flex flex-col">

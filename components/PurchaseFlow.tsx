@@ -60,10 +60,9 @@ interface PurchaseFlowProps {
   variant?: 'helmet-v1' | 'helmet-v2' | 'subscription' | 'full';
   defaultOpen?: boolean;
   id?: string;
-  blackFriday?: boolean;
 }
 
-export default function PurchaseFlow({ variant = 'full', defaultOpen, id, blackFriday = false }: PurchaseFlowProps) {
+export default function PurchaseFlow({ variant = 'full', defaultOpen, id }: PurchaseFlowProps) {
   const [state, setState] = useState<PurchaseState>(() => loadState());
   const [mounted, setMounted] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -151,9 +150,7 @@ export default function PurchaseFlow({ variant = 'full', defaultOpen, id, blackF
   };
 
   // URLs
-  const V1_URL = blackFriday 
-    ? 'https://www.neuronic.online/black-friday-2025-neuronics-biggest-sale-of-the-year-save-up-to-30-percent'
-    : 'https://www.neuronic.online/products/neuronic-light-1070nm-photobiomodulation-helmet-with-app-connectivity';
+  const V1_URL = 'https://www.neuronic.online/products/neuronic-light-1070nm-photobiomodulation-helmet-with-app-connectivity';
   const V2_URL = 'https://www.neuronic.online/products/neuradiant-1070-non-invasive-photobiomodulation-helmet';
   const SUB_MONTHLY_URL = 'https://buy.stripe.com/4gMaEX0fI7oReCU1bke3e03';
   const SUB_ANNUAL_URL = 'https://buy.stripe.com/9B63cv0fI24x0M4g6ee3e04';
@@ -190,66 +187,47 @@ export default function PurchaseFlow({ variant = 'full', defaultOpen, id, blackF
         defaultOpen={isClient ? (variant === 'helmet-v1' ? (defaultOpen ?? (!state.step1Completed)) : (!state.step1Completed && opened === 'A')) : false}
       >
         {({ open }) => (
-          <div className={`${sectionBase} ${!canInteractA ? 'opacity-60 pointer-events-none' : ''} ${blackFriday ? 'ring-2 ring-orange-400 bg-gradient-to-br from-amber-50 to-orange-50' : ''}`}>
+          <div className={`${sectionBase} ${!canInteractA ? 'opacity-60 pointer-events-none' : ''}`}>
             <DisclosureButton className={headerBase} onClick={() => setOpened('A')} aria-label="Toggle Step 1 — Buy Portable 1070 nm Helmet">
               {headerCheck(isClient && (state.step1Completed && state.chosenHelmet === 'v1'))}
               <div>
-                <div className={`${titleBase} ${blackFriday ? 'flex items-center gap-2' : ''}`}>
-                  {blackFriday && <span className="text-2xl">🎉</span>}
-                  Step 1 — {blackFriday ? 'Get Your Black Friday Deal' : 'Buy Portable 1070 nm Helmet'}
-                  {blackFriday && <span className="text-2xl">🎉</span>}
-                </div>
-                <p className={subTitle}>{blackFriday ? 'Stack up to 40% OFF: Black Friday sale + BrainCore provider discount!' : 'Copy your discount code and purchase your helmet.'}</p>
+                <div className={titleBase}>Step 1 — Buy Portable 1070 nm Helmet</div>
+                <p className={subTitle}>Copy your discount code and purchase your helmet.</p>
               </div>
             </DisclosureButton>
             <DisclosurePanel className="px-4 sm:px-6 pb-6 pt-2">
-              {blackFriday && (
-                <div className="mb-4 p-4 rounded-lg bg-gradient-to-r from-orange-100 to-red-100 border-2 border-orange-300">
-                  <p className="text-sm font-semibold text-gray-900 mb-2">🔥 Black Friday Special: Stack Your Savings!</p>
-                  <ul className="text-sm text-gray-700 space-y-1 list-disc list-inside">
-                    <li>Neuronic's Black Friday sale: <strong>Up to 30% OFF</strong></li>
-                    <li>BrainCore provider discount: <strong>Additional 10% OFF</strong> with code BRAINCORE</li>
-                    <li><strong>Total savings: Up to 40% OFF!</strong></li>
-                  </ul>
-                </div>
-              )}
               {/* Sub-step A */}
               <div className="pl-4 sm:pl-8">
-                <div className="text-sm font-semibold text-gray-900">A. Copy Your BrainCore Provider Discount Code</div>
-                {blackFriday && (
-                  <p className="mt-1 text-sm text-orange-700 font-medium">Use this code for an ADDITIONAL 10% off on top of Black Friday pricing!</p>
-                )}
+                <div className="text-sm font-semibold text-gray-900">A. Copy Discount Code</div>
                 <div className="mt-2 flex flex-col sm:flex-row gap-2 sm:gap-3 max-w-xl">
                   <input
                     type="text"
                     readOnly
                     value={DISCOUNT_CODE}
-                    className={`flex-1 rounded-md shadow-sm px-3 sm:px-4 py-2 border text-base sm:text-lg font-mono tracking-widest ${blackFriday ? 'border-orange-400 bg-orange-50 text-orange-900 focus:border-orange-500 focus:ring-orange-500' : 'border-gray-300 focus:border-indigo-500 focus:ring-indigo-500'}`}
+                    className="flex-1 rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500 px-3 sm:px-4 py-2 border text-base sm:text-lg font-mono tracking-widest"
                     aria-label="Discount code"
                   />
                   <button
                     onClick={onCopy}
-                    className={`rounded-md px-4 py-2 text-white text-sm font-semibold shadow-sm focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 whitespace-nowrap ${blackFriday ? 'bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700 focus-visible:outline-orange-600' : 'bg-indigo-600 hover:bg-indigo-500 focus-visible:outline-indigo-600'}`}
+                    className="rounded-md bg-indigo-600 px-4 py-2 text-white text-sm font-semibold shadow-sm hover:bg-indigo-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600 whitespace-nowrap"
                   >
                     Copy Code
                   </button>
                 </div>
-                {copied && <div className={`mt-2 text-sm font-medium ${blackFriday ? 'text-orange-700' : 'text-green-700'}`}>✓ Code copied!</div>}
+                {copied && <div className="mt-2 text-sm text-green-700">Code copied!</div>}
               </div>
 
               {/* Sub-step B */}
               <div className="pl-4 sm:pl-8 mt-6">
-                <div className="text-sm font-semibold text-gray-900">B. {blackFriday ? 'Shop Black Friday Sale' : 'Purchase Helmet'}</div>
+                <div className="text-sm font-semibold text-gray-900">B. Purchase Helmet</div>
                 <p className="mt-1 text-sm text-gray-600">
-                  {blackFriday 
-                    ? 'Click below to view all Black Friday deals. Apply your BRAINCORE code at checkout for the stacked discount!' 
-                    : 'Purchase your Portable 1070 nm Helmet. Use the discount code above — it applies to as many helmets as you\'d like to purchase.'}
+                  Step 1B: Purchase your Portable 1070 nm Helmet. Use the discount code above — it applies to as many helmets as you'd like to purchase.
                 </p>
                 <button
                   onClick={() => launchHelmet(V1_URL, 'v1')}
-                  className={`mt-4 w-full sm:w-auto rounded-md px-5 py-3 text-white text-sm sm:text-base font-semibold shadow-sm ${blackFriday ? 'bg-gradient-to-r from-orange-600 to-red-600 hover:from-orange-700 hover:to-red-700' : 'bg-indigo-600 hover:bg-indigo-500'}`}
+                  className="mt-4 w-full sm:w-auto rounded-md bg-indigo-600 px-5 py-3 text-white text-sm sm:text-base font-semibold shadow-sm hover:bg-indigo-500"
                 >
-                  {blackFriday ? '🎉 View Black Friday Deals' : 'Purchase your Portable 1070 nm Helmet'}
+                  Purchase your Portable 1070 nm Helmet
                 </button>
               </div>
             </DisclosurePanel>
